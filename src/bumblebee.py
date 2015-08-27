@@ -94,13 +94,15 @@ def action_upload(args):
 			'name': args.bucket,
 			'token': _get_token(args)
 		}).inserted_id
+	bucket_id = bucket_id['_id']
 	runs = db.runs
-	run_id = runs.find_one({'bucket_id': bucket_id['_id'], 'number': args.runno})
+	run_id = runs.find_one({'bucket_id': bucket_id, 'number': args.runno})
 	if run_id is None:
 		run_id = runs.insert_one({
 			'bucket_id': bucket_id,
 			'number': args.runno
 		}).inserted_id
+	run_id = run_id['_id']
 
 	# select source connector
 	try:
@@ -122,7 +124,7 @@ def action_upload(args):
 	# parse data, write to database
 	try:
 		connector = connector(rolefile, directory=args.resultsdir)
-		connector.parse(db, bucket_id['_id'], run_id['_id'])
+		connector.parse(db, bucket_id, run_id)
 	except Exception as e:
 		_print(args, e.message)
 

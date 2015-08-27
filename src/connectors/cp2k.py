@@ -39,11 +39,12 @@ class Cp2kConnector(base.Connector):
 		except:
 			pass
 		try:
-			db_run['ensemble'] = _find_by_re(loglines, '^MD| Ensemble Type [ ]* ([^ ]*)', 1)
+			db_run['ensemble'] = _find_by_re(loglines, '^MD| Ensemble Type [ ]* ([^ ]*)', 1).strip()
 		except:
 			pass
 		try:
 			db_run['ts'] = float(_find_by_re(loglines, '^MD| Time Step \[fs\] [ ]* (\d*\.\d*)', 1))
 		except:
 			pass
+
 		db.runs.update({'_id': run_id}, {'$set': db_run}, upsert=False)
