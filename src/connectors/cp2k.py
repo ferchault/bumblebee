@@ -33,7 +33,7 @@ class Cp2kConnector(base.Connector):
 	def parse(self, db, bucket_id, run_id):
 		loglines = self._read_textfile_in_memory(self._filenames['logfile'][0])
 
-		db_run = db.runs.find_one({'_id': run_id})
+		db_run = db.runs.find_one({'id': run_id})
 		try:
 			db_run['cores'] = int(_find_by_re(loglines, '^GLOBAL| Total number of message passing processes[ ]*(\d*)', 1))
 		except:
@@ -47,4 +47,4 @@ class Cp2kConnector(base.Connector):
 		except:
 			pass
 
-		db.runs.update({'_id': run_id}, {'$set': db_run}, upsert=False)
+		db.runs.update({'id': run_id}, {'$set': db_run}, upsert=False)

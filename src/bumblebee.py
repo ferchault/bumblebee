@@ -85,9 +85,11 @@ def action_upload(args):
 	if args.runno is None:
 		_print(args, 'E0006', 'No run id specified.')
 
-	# connect to MongoDB and prepare bucket with run
+	# connect to MongoDB
 	db = get_server(args)
 	buckets = db.buckets
+
+	# prepare bucket
 	bucket_id = buckets.find_one({'name': args.bucket})
 	if bucket_id is None:
 		bucket_id = buckets.insert_one({
@@ -95,6 +97,14 @@ def action_upload(args):
 			'token': _get_token(args)
 		}).inserted_id
 	bucket_id = bucket_id['_id']
+
+	# copy _id column, workaround for SQL Mapper like Apache Drill
+	bucket = buckets.find_one({'_id': bucket_id})
+	bucket['id'] = str(bucket_id)
+	buckets.update({'_id': bucket_id}, {'$set': bucket}, upsert=False)
+	bucket_id = str(bucket_id)
+
+	# prepare run
 	runs = db.runs
 	run_id = runs.find_one({'bucket_id': bucket_id, 'number': args.runno})
 	if run_id is None:
@@ -103,6 +113,12 @@ def action_upload(args):
 			'number': args.runno
 		}).inserted_id
 	run_id = run_id['_id']
+
+	# copy _id column, workaround for SQL Mapper like Apache Drill
+	run = runs.find_one({'_id': run_id})
+	run['id'] = str(run_id)
+	runs.update({'_id': run_id}, {'$set': run}, upsert=False)
+	run_id = str(run_id)
 
 	# select source connector
 	try:
