@@ -16,7 +16,7 @@ def index(request):
 	context = RequestContext(request, {
 		'systems': systems,
 	})
-	return HttpResponse(template.render(context))
+	return render(request, 'results/index.html', context)
 
 class SystemViewSet(viewsets.ModelViewSet):
 	"""
