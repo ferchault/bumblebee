@@ -14,6 +14,11 @@ class Series(models.Model):
 	name = models.CharField(max_length=45)
 	bucket = models.ForeignKey(Bucket)
 
+class SeriesAttributes(models.Model):
+	key = models.CharField(max_length=45)
+	value = models.CharField(max_length=100)
+	series = models.ForeignKey(Series)
+
 class SinglePoint(models.Model):
 	name = models.CharField(max_length=45)
 	series = models.ForeignKey(Series)
@@ -24,3 +29,8 @@ class SinglePointOuter(models.Model):
 	gradient = models.FloatField()
 	scfcycles = models.IntegerField()
 	otnumber = models.IntegerField()
+
+class SinglePointAttributes(models.Model):
+	key = models.CharField(max_length=45)
+	value = models.CharField(max_length=100)
+	series = models.ForeignKey(Series)
