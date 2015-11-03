@@ -1,0 +1,7 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    {% for system in system_list %}
+     {{ system.name }}
+    {% endfor %}
+{% endblock %}

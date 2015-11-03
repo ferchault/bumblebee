@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+{% block title %}System{% endblock %}
+{% block subtitle %}New Entry{% endblock %}
+
+{% load results_extras %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-6">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Create New Entry</h3>
+                </div>
+                <form action="" method="post" role="form" class="form-horizontal">
+                {% csrf_token %}
+                    <div class="box-body">
+                        {% for field in form %}
+                            <div class="form-group">
+                            {{ field.errors }}
+                            <label class="col-sm-3 control-label" for="{{ field.auto_id }}">{{ field.label }}</label>
+                            <div class="col-sm-9">
+                                {{ field|add_attributes:"class:form-control,placeholder:test" }}
+                            </div>
+
+                            {% if field.help_text %}
+                                <div class="col-sm-9 col-sm-offset-3">{{ field.help_text|safe }}</div>
+                                <p class="help"></p>
+                            {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="box-footer">
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Definition</h3>
+                </div>
+                <div class="box-body">
+                    {{ form|form_explain }}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>{% block title %}bumblebee{% endblock %}</title>
+    <title>{% block pagetitle %}bumblebee{% endblock %}</title>
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
 
     <link rel="stylesheet" href="{% static "bootstrap/css/bootstrap.min.css" %}">
@@ -68,8 +68,8 @@
     <!-- Content Header (Page header) -->
     <section class="content-header">
       <h1>
-        Page Header
-        <small>Optional description</small>
+        {% block title %}Title{% endblock %}
+        <small>{% block subtitle %}{% endblock %}</small>
       </h1>
     </section>
 

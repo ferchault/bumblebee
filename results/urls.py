@@ -12,5 +12,7 @@ router.register(r'system', views.SystemViewSet)
 
 urlpatterns = patterns('',
 	url(r'^$', views.index, name='index'),
+	url(r'^system/$', views.SystemListing.as_view(), name='results-system-list'),
+	url(r'^system/add$', views.SystemCreate.as_view(), name='results-system-add'),
 	url(r'^api/', include(router.urls)),
 )
