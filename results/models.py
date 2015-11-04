@@ -1,7 +1,13 @@
+# django modules
 from django.db import models
 from django.forms import ModelForm
 
-class System(models.Model):
+class Explainable(models.Model):
+	@staticmethod
+	def explain():
+		return ('No explanation available.')
+
+class System(Explainable):
 	name = models.CharField(max_length=45, help_text="Unique name of the physical system treated in this simulation.")
 
 	@staticmethod
@@ -16,34 +22,34 @@ class SystemForm(ModelForm):
 		model = System
 		fields = '__all__'
 
-class Bucket(models.Model):
+class Bucket(Explainable):
 	name = models.CharField(max_length=45)
 	token = models.CharField(max_length=50)
 	comment = models.CharField(max_length=200)
 	updated = models.DateTimeField()
 	system = models.ForeignKey(System)
 
-class Series(models.Model):
+class Series(Explainable):
 	name = models.CharField(max_length=45)
 	bucket = models.ForeignKey(Bucket)
 
-class SeriesAttributes(models.Model):
+class SeriesAttributes(Explainable):
 	key = models.CharField(max_length=45)
 	value = models.CharField(max_length=100)
 	series = models.ForeignKey(Series)
 
-class SinglePoint(models.Model):
+class SinglePoint(Explainable):
 	name = models.CharField(max_length=45)
 	series = models.ForeignKey(Series)
 
-class SinglePointOuter(models.Model):
+class SinglePointOuter(Explainable):
 	lagrangian = models.FloatField()
 	orderparameter = models.FloatField()
 	gradient = models.FloatField()
 	scfcycles = models.IntegerField()
 	otnumber = models.IntegerField()
 
-class SinglePointAttributes(models.Model):
+class SinglePointAttributes(Explainable):
 	key = models.CharField(max_length=45)
 	value = models.CharField(max_length=100)
 	series = models.ForeignKey(Series)
