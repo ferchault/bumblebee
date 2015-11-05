@@ -1,7 +1,7 @@
 # django modules
 from django.db import models
 
-class Explainable(object):
+class ExplainableMixin(object):
 	def get_fields(self):
 		return [field for field in self._meta.fields]
 
@@ -14,3 +14,9 @@ class Explainable(object):
 	@staticmethod
 	def explain():
 		return ('No explanation available.')
+
+class ModelNameMixin(object):
+	def get_context_data(self, **kwargs):
+		context = super(ModelNameMixin, self).get_context_data(**kwargs)
+		context['modelname'] = self.model._meta.verbose_name.title()
+		return context

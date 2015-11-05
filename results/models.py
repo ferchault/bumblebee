@@ -2,9 +2,9 @@
 from django.db import models
 from django.forms import ModelForm
 
-from bumblebee.models import Explainable
+from bumblebee.models import ExplainableMixin
 
-class System(models.Model, Explainable):
+class System(models.Model, ExplainableMixin):
 	name = models.CharField(max_length=45, help_text="Unique name of the physical system treated in this simulation.")
 
 	@staticmethod
@@ -19,34 +19,34 @@ class SystemForm(ModelForm):
 		model = System
 		fields = '__all__'
 
-class Bucket(models.Model, Explainable):
+class Bucket(models.Model, ExplainableMixin):
 	name = models.CharField(max_length=45)
 	token = models.CharField(max_length=50)
 	comment = models.CharField(max_length=200)
 	updated = models.DateTimeField()
 	system = models.ForeignKey(System)
 
-class Series(models.Model, Explainable):
+class Series(models.Model, ExplainableMixin):
 	name = models.CharField(max_length=45)
 	bucket = models.ForeignKey(Bucket)
 
-class SeriesAttributes(models.Model, Explainable):
+class SeriesAttributes(models.Model, ExplainableMixin):
 	key = models.CharField(max_length=45)
 	value = models.CharField(max_length=100)
 	series = models.ForeignKey(Series)
 
-class SinglePoint(models.Model, Explainable):
+class SinglePoint(models.Model, ExplainableMixin):
 	name = models.CharField(max_length=45)
 	series = models.ForeignKey(Series)
 
-class SinglePointOuter(models.Model, Explainable):
+class SinglePointOuter(models.Model, ExplainableMixin):
 	lagrangian = models.FloatField()
 	orderparameter = models.FloatField()
 	gradient = models.FloatField()
 	scfcycles = models.IntegerField()
 	otnumber = models.IntegerField()
 
-class SinglePointAttributes(models.Model, Explainable):
+class SinglePointAttributes(models.Model, ExplainableMixin):
 	key = models.CharField(max_length=45)
 	value = models.CharField(max_length=100)
 	series = models.ForeignKey(Series)

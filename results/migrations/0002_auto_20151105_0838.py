@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
                 ('value', models.CharField(max_length=100)),
                 ('series', models.ForeignKey(to='results.Series')),
             ],
-            bases=(models.Model, bumblebee.models.Explainable),
+            bases=(models.Model, bumblebee.models.ExplainableMixin),
         ),
         migrations.CreateModel(
             name='SinglePointAttributes',
@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
                 ('value', models.CharField(max_length=100)),
                 ('series', models.ForeignKey(to='results.Series')),
             ],
-            bases=(models.Model, bumblebee.models.Explainable),
+            bases=(models.Model, bumblebee.models.ExplainableMixin),
         ),
         migrations.AlterField(
             model_name='system',

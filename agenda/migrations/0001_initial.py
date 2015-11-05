@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=45)),
                 ('active', models.BooleanField()),
             ],
-            bases=(models.Model, bumblebee.models.Explainable),
+            bases=(models.Model, bumblebee.models.ExplainableMixin),
         ),
         migrations.CreateModel(
             name='TodoEntry',
@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
                 ('task', models.CharField(max_length=200)),
                 ('duedate', models.DateField()),
             ],
-            bases=(models.Model, bumblebee.models.Explainable),
+            bases=(models.Model, bumblebee.models.ExplainableMixin),
         ),
         migrations.CreateModel(
             name='TodoPriority',
@@ -36,7 +36,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=20)),
                 ('priority', models.IntegerField()),
             ],
-            bases=(models.Model, bumblebee.models.Explainable),
+            bases=(models.Model, bumblebee.models.ExplainableMixin),
         ),
         migrations.CreateModel(
             name='TodoStatus',
@@ -45,7 +45,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=30)),
                 ('completed', models.BooleanField()),
             ],
-            bases=(models.Model, bumblebee.models.Explainable),
+            bases=(models.Model, bumblebee.models.ExplainableMixin),
         ),
         migrations.AddField(
             model_name='todoentry',
