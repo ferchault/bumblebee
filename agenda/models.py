@@ -6,7 +6,7 @@ from django.forms import ModelForm
 from bumblebee.models import Explainable
 
 class Project(models.Model, Explainable):
-	name = models.CharField(max_length=45)
+	name = models.CharField(max_length=45, verbose_name="Project Name", help_text="The name this project is referred to.")
 	active = models.BooleanField()
 
 class ProjectForm(ModelForm):
