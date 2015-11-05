@@ -20,6 +20,7 @@
                                 {% for field in object.get_fields %}
                                     <th>{{ field.verbose_name }}</th>
                                 {% endfor %}
+                                <th>Actions</th>
                             {% endfor %}
                         </tr>
                         {% for object in object_list %}
@@ -27,6 +28,7 @@
                                 {% for field in object.get_field_values %}
                                     <td>{{ field|safe }}</td>
                                 {% endfor %}
+                                <td><a class="btn btn-sm btn-info" href="edit/{{ object.id }}/">Edit</a> <a class="btn btn-danger btn-sm" href="delete/{{ object.id }}/">Delete</a></td>
                             </tr>
                         {% endfor %}
                     </table>

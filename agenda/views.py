@@ -40,6 +40,7 @@ class ProjectUpdate(UpdateView):
 class ProjectDelete(DeleteView):
 	model = Project
 	success_url = reverse_lazy('agenda-project-list')
+	template_name = 'deleteview-generic.html'
 
 	def get_context_data(self, **kwargs):
 		context = super(ProjectDelete, self).get_context_data(**kwargs)

@@ -9,6 +9,9 @@ class Project(models.Model, Explainable):
 	name = models.CharField(max_length=45, verbose_name="Project Name", help_text="The name this project is referred to.")
 	active = models.BooleanField()
 
+	def detailed(self):
+		return '%s %s' % (self._meta.verbose_name, self.name)
+
 class ProjectForm(ModelForm):
 	class Meta:
 		model = Project
