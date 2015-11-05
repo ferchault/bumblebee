@@ -1,12 +1,18 @@
-# django imports
+# django modules
 from django.db import models
+from django.forms import ModelForm
 
-# project-specific imports
+# app-specific imports
 from bumblebee.models import Explainable
 
 class Project(models.Model, Explainable):
 	name = models.CharField(max_length=45)
 	active = models.BooleanField()
+
+class ProjectForm(ModelForm):
+	class Meta:
+		model = Project
+		fields = '__all__'
 
 class TodoStatus(models.Model, Explainable):
 	name = models.CharField(max_length=30)

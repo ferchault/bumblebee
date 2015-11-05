@@ -5,5 +5,6 @@ from django.conf.urls import include, url
 import results.views as views
 
 urlpatterns = [
-	url(r'^results/', include('results.urls'))
+	url(r'^results/', include('results.urls')),
+	url(r'^agenda/', include('agenda.urls')),
 ]

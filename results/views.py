@@ -22,11 +22,18 @@ def index(request):
 
 class SystemListing(ListView):
 	model = System
+	template_name = 'listview-generic.html'
 
 class SystemCreate(CreateView):
 	model = System
 	form_class = SystemForm
 	success_url = reverse_lazy('results-system-list')
+	template_name = 'createview-generic.html'
+
+	def get_context_data(self, **kwargs):
+		context = super(SystemCreate, self).get_context_data(**kwargs)
+		context['modelname'] = self.model._meta.verbose_name.title()
+		return context
 
 class SystemViewSet(viewsets.ModelViewSet):
 	"""
