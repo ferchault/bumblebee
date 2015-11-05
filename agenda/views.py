@@ -1,6 +1,6 @@
 from django.shortcuts import render
 
-from django.views.generic import ListView, CreateView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.core.urlresolvers import reverse_lazy
 
 # app-specific imports
@@ -23,5 +23,25 @@ class ProjectCreate(CreateView):
 
 	def get_context_data(self, **kwargs):
 		context = super(ProjectCreate, self).get_context_data(**kwargs)
+		context['modelname'] = self.model._meta.verbose_name.title()
+		return context
+
+class ProjectUpdate(UpdateView):
+	model = Project
+	fields = ['name', 'active']
+	template_name = 'updateview-generic.html'
+	success_url = reverse_lazy('agenda-project-list')
+
+	def get_context_data(self, **kwargs):
+		context = super(ProjectUpdate, self).get_context_data(**kwargs)
+		context['modelname'] = self.model._meta.verbose_name.title()
+		return context
+
+class ProjectDelete(DeleteView):
+	model = Project
+	success_url = reverse_lazy('agenda-project-list')
+
+	def get_context_data(self, **kwargs):
+		context = super(ProjectDelete, self).get_context_data(**kwargs)
 		context['modelname'] = self.model._meta.verbose_name.title()
 		return context
