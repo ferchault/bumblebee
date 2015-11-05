@@ -2,12 +2,9 @@
 from django.db import models
 from django.forms import ModelForm
 
-class Explainable(models.Model):
-	@staticmethod
-	def explain():
-		return ('No explanation available.')
+from bumblebee.models import Explainable
 
-class System(Explainable):
+class System(models.Model, Explainable):
 	name = models.CharField(max_length=45, help_text="Unique name of the physical system treated in this simulation.")
 
 	@staticmethod
@@ -22,34 +19,34 @@ class SystemForm(ModelForm):
 		model = System
 		fields = '__all__'
 
-class Bucket(Explainable):
+class Bucket(models.Model, Explainable):
 	name = models.CharField(max_length=45)
 	token = models.CharField(max_length=50)
 	comment = models.CharField(max_length=200)
 	updated = models.DateTimeField()
 	system = models.ForeignKey(System)
 
-class Series(Explainable):
+class Series(models.Model, Explainable):
 	name = models.CharField(max_length=45)
 	bucket = models.ForeignKey(Bucket)
 
-class SeriesAttributes(Explainable):
+class SeriesAttributes(models.Model, Explainable):
 	key = models.CharField(max_length=45)
 	value = models.CharField(max_length=100)
 	series = models.ForeignKey(Series)
 
-class SinglePoint(Explainable):
+class SinglePoint(models.Model, Explainable):
 	name = models.CharField(max_length=45)
 	series = models.ForeignKey(Series)
 
-class SinglePointOuter(Explainable):
+class SinglePointOuter(models.Model, Explainable):
 	lagrangian = models.FloatField()
 	orderparameter = models.FloatField()
 	gradient = models.FloatField()
 	scfcycles = models.IntegerField()
 	otnumber = models.IntegerField()
 
-class SinglePointAttributes(Explainable):
+class SinglePointAttributes(models.Model, Explainable):
 	key = models.CharField(max_length=45)
 	value = models.CharField(max_length=100)
 	series = models.ForeignKey(Series)
