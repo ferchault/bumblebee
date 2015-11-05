@@ -4,7 +4,6 @@
 
 {% block content %}
     <div class="row">
-    {% if object_list|length > 0 %}
         <div class="col-md-12">
             <div class="box">
                 <div class="box-header">
@@ -13,7 +12,8 @@
                         <a class="btn btn-success btn-sm" href="add">Add Entry</a>
                     </div>
                 </div>
-                <div class="box-body table-responsive no-padding">
+                <div class="box-body table-responsive">
+                {% if object_list|length > 0 %}
                     <table class="table table-hover">
                         <tr>
                             {% for object in object_list|slice:":1" %}
@@ -32,11 +32,11 @@
                             </tr>
                         {% endfor %}
                     </table>
+                    {% else %}
+                        <p>No entries.</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
-    {% else %}
-        <p>No entries.</p>
-    {% endif %}
     </div>
 {% endblock %}
