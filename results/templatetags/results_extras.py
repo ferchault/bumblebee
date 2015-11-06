@@ -1,6 +1,7 @@
 from django import template
 register = template.Library()
 
+
 @register.filter(name='add_attributes')
 def add_attributes(field, css):
     attrs = {}
@@ -15,7 +16,19 @@ def add_attributes(field, css):
 
     return field.as_widget(attrs=attrs)
 
+
 @register.filter(name='form_explain')
 def add_attributes(form):
-	return form.Meta.model.explain()
+    return form.Meta.model.explain()
 
+
+@register.filter
+def fieldtype(obj):
+    return obj.__class__.__name__
+
+
+@register.simple_tag
+def value_to_string(field, object):
+	if field.__class__.__name__ == 'ForeignKey':
+		return getattr(object, field.name)
+	return field.value_to_string(object)

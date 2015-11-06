@@ -2,6 +2,8 @@
 {% block title %}{{ modelname }}{% endblock %}
 {% block subtitle %}Show Entries{% endblock %}
 
+{% load results_extras %}
+
 {% block content %}
     <div class="row">
         <div class="col-md-12">
@@ -25,8 +27,8 @@
                         </tr>
                         {% for object in object_list %}
                             <tr>
-                                {% for field in object.get_field_values %}
-                                    <td>{{ field|safe }}</td>
+                                {% for field in object.get_fields %}
+                                    <td>{% value_to_string field object %}</td>
                                 {% endfor %}
                                 <td><a class="btn btn-sm btn-info" href="edit/{{ object.id }}/">Edit</a> <a class="btn btn-danger btn-sm" href="delete/{{ object.id }}/">Delete</a></td>
                             </tr>

@@ -33,7 +33,7 @@ class LimitSelfReferenceDepth(object):
 
 class Project(models.Model, ExplainableMixin):
 	name = models.CharField(max_length=45, verbose_name="Project Name", help_text="The name this project is referred to.")
-	active = models.BooleanField()
+	active = models.BooleanField(verbose_name='Active?')
 	parent = models.ForeignKey('self', validators=[LimitSelfReferenceDepth(1, 'Project')], default=None, null=True)
 
 	def detailed(self):
@@ -53,6 +53,9 @@ class TodoStatus(models.Model, ExplainableMixin):
 	name = models.CharField(max_length=30)
 	completed = models.BooleanField()
 
+	def __unicode__(self):
+		return self.name
+
 
 class TodoStatusForm(ModelForm):
 	class Meta:
@@ -64,6 +67,9 @@ class TodoPriority(models.Model, ExplainableMixin):
 	name = models.CharField(max_length=20)
 	priority = models.IntegerField()
 
+	def __unicode__(self):
+		return self.name
+
 
 class TodoPriorityForm(ModelForm):
 	class Meta:
@@ -74,7 +80,7 @@ class TodoPriorityForm(ModelForm):
 class TodoEntry(models.Model, ExplainableMixin):
 	task = models.CharField(max_length=200)
 	project = models.ForeignKey(Project)
-	duedate = models.DateField()
+	duedate = models.DateField(null=True, blank=True)
 	priority = models.ForeignKey(TodoPriority)
 	status = models.ForeignKey(TodoStatus)
 
