@@ -19,7 +19,11 @@
                             {{ field.errors }}
                             <label class="col-sm-3 control-label" for="{{ field.auto_id }}">{{ field.label }}</label>
                             <div class="col-sm-9">
-                                {{ field|add_attributes:"class:form-control,placeholder:test" }}
+                                {% if field|is_boolean_field %}
+                                    {{ field }}
+                                {% else %}
+                                    {{ field|add_attributes:"class:form-control" }}
+                                {% endif %}
                             </div>
 
                             {% if field.help_text %}

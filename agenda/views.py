@@ -1,6 +1,8 @@
 # django imports
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.core.urlresolvers import reverse_lazy
+from django.template import RequestContext, loader
+from django.shortcuts import render
 
 # app-specific imports
 from agenda.models import *
@@ -46,7 +48,7 @@ class StatusCreate(ModelNameMixin, CreateView):
 
 class StatusUpdate(ModelNameMixin, UpdateView):
 	model = TodoStatus
-	fields = ['name', 'completed']
+	fields = ['name', 'waitingexternal', 'needshuman', 'completed']
 	template_name = 'updateview-generic.html'
 	success_url = reverse_lazy('agenda-status-list')
 
@@ -105,3 +107,12 @@ class EntryDelete(ModelNameMixin, DeleteView):
 	model = TodoEntry
 	success_url = reverse_lazy('agenda-entry-list')
 	template_name = 'deleteview-generic.html'
+
+
+def overview(request):
+	#template = loader.get_template('agenda/overview.html')
+	human_actions = TodoEntry.objects.filter(status__needshuman = True)
+	context = RequestContext(request, {
+		'human': human_actions,
+	})
+	return render(request, 'agenda/overview.html', context)

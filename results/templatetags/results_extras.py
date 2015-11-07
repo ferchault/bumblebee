@@ -32,3 +32,8 @@ def value_to_string(field, object):
 	if field.__class__.__name__ == 'ForeignKey':
 		return getattr(object, field.name)
 	return field.value_to_string(object)
+
+
+@register.filter(name='is_boolean_field')
+def is_boolean_field(field):
+	return field.field.__class__.__name__ == 'BooleanField'

@@ -51,7 +51,9 @@ class ProjectForm(ModelForm):
 
 class TodoStatus(models.Model, ExplainableMixin):
 	name = models.CharField(max_length=30)
-	completed = models.BooleanField()
+	waitingexternal = models.BooleanField(help_text='Whether propagation from this stage requires external actions.', default=False)
+	needshuman = models.BooleanField(help_text='Whether human interaction is required at this stage.', default=False)
+	completed = models.BooleanField(help_text='Whether elements past this stage are not relevant to planning.', default=False)
 
 	def __unicode__(self):
 		return self.name
