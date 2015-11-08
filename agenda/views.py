@@ -98,7 +98,7 @@ class EntryCreate(ModelNameMixin, CreateView):
 
 class EntryUpdate(ModelNameMixin, UpdateView):
 	model = TodoEntry
-	fields = ['name', 'completed']
+	fields = ['task', 'project', 'duedate', 'priority', 'status']
 	template_name = 'updateview-generic.html'
 	success_url = reverse_lazy('agenda-entry-list')
 
