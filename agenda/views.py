@@ -110,9 +110,12 @@ class EntryDelete(ModelNameMixin, DeleteView):
 
 
 def overview(request):
-	#template = loader.get_template('agenda/overview.html')
 	human_actions = TodoEntry.objects.filter(status__needshuman = True)
+	waiting_actions = TodoEntry.objects.filter(status__waitingexternal = True)
+	other_actions = TodoEntry.objects.filter(status__needshuman = False, status__waitingexternal=False)
 	context = RequestContext(request, {
 		'human': human_actions,
+		'waiting': waiting_actions,
+		'other': other_actions
 	})
 	return render(request, 'agenda/overview.html', context)

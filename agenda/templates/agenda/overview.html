@@ -5,5 +5,112 @@
 {% load results_extras %}
 
 {% block content %}
-{{ human }}
+<div class="row">
+    <div class="col-md-12">
+        <div class="box">
+            <div class="box-header">
+                <h3 class="box-title">Human attention required</h3>
+                <div class="box-tools">
+                    <a class="btn btn-success btn-sm" href="add">Add Entry</a>
+                </div>
+            </div>
+            <div class="box-body table-responsive">
+                {% if human|length > 0 %}
+                    <table class="table table-hover">
+                        <tr>
+                            {% for object in human|slice:":1" %}
+                                {% for field in object.get_fields %}
+                                    <th>{{ field.verbose_name }}</th>
+                                {% endfor %}
+                                <th>Actions</th>
+                            {% endfor %}
+                        </tr>
+                        {% for object in human %}
+                            <tr>
+                                {% for field in object.get_fields %}
+                                    <td>{% value_to_string field object %}</td>
+                                {% endfor %}
+                                <td><a class="btn btn-sm btn-info" href="entry/edit/{{ object.id }}/">Edit</a> <a class="btn btn-danger btn-sm" href="entry/delete/{{ object.id }}/">Delete</a></td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                    {% else %}
+                        <p>No entries.</p>
+                    {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="box">
+            <div class="box-header">
+                <h3 class="box-title">Waiting for external</h3>
+                <div class="box-tools">
+                    <a class="btn btn-success btn-sm" href="add">Add Entry</a>
+                </div>
+            </div>
+            <div class="box-body table-responsive">
+                {% if external|length > 0 %}
+                    <table class="table table-hover">
+                        <tr>
+                            {% for object in external|slice:":1" %}
+                                {% for field in object.get_fields %}
+                                    <th>{{ field.verbose_name }}</th>
+                                {% endfor %}
+                                <th>Actions</th>
+                            {% endfor %}
+                        </tr>
+                        {% for object in human %}
+                            <tr>
+                                {% for field in object.get_fields %}
+                                    <td>{% value_to_string field object %}</td>
+                                {% endfor %}
+                                <td><a class="btn btn-sm btn-info" href="entry/edit/{{ object.id }}/">Edit</a> <a class="btn btn-danger btn-sm" href="entry/delete/{{ object.id }}/">Delete</a></td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                    {% else %}
+                        <p>No entries.</p>
+                    {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="box">
+            <div class="box-header">
+                <h3 class="box-title">Other</h3>
+                <div class="box-tools">
+                    <a class="btn btn-success btn-sm" href="entry/add">Add Entry</a>
+                </div>
+            </div>
+            <div class="box-body table-responsive">
+                {% if other|length > 0 %}
+                    <table class="table table-hover">
+                        <tr>
+                            {% for object in other|slice:":1" %}
+                                {% for field in object.get_fields %}
+                                    <th>{{ field.verbose_name }}</th>
+                                {% endfor %}
+                                <th>Actions</th>
+                            {% endfor %}
+                        </tr>
+                        {% for object in other %}
+                            <tr>
+                                {% for field in object.get_fields %}
+                                    <td>{% value_to_string field object %}</td>
+                                {% endfor %}
+                                <td><a class="btn btn-sm btn-info" href="entry/edit/{{ object.id }}/">Edit</a> <a class="btn btn-danger btn-sm" href="entry/delete/{{ object.id }}/">Delete</a></td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                    {% else %}
+                        <p>No entries.</p>
+                    {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
