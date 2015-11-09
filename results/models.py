@@ -1,8 +1,8 @@
 # django modules
 from django.db import models
 from django.forms import ModelForm
-
 from bumblebee.models import ExplainableMixin
+
 
 class System(models.Model, ExplainableMixin):
 	name = models.CharField(max_length=45, help_text="Unique name of the physical system treated in this simulation.")
@@ -14,10 +14,12 @@ class System(models.Model, ExplainableMixin):
 				'representations in terms of different topologies and atom kinds. A system definition is used for '
 				'grouping similar simulations.')
 
+
 class SystemForm(ModelForm):
 	class Meta:
 		model = System
 		fields = '__all__'
+
 
 class Bucket(models.Model, ExplainableMixin):
 	name = models.CharField(max_length=45)
@@ -26,18 +28,22 @@ class Bucket(models.Model, ExplainableMixin):
 	updated = models.DateTimeField()
 	system = models.ForeignKey(System)
 
+
 class Series(models.Model, ExplainableMixin):
 	name = models.CharField(max_length=45)
 	bucket = models.ForeignKey(Bucket)
+
 
 class SeriesAttributes(models.Model, ExplainableMixin):
 	key = models.CharField(max_length=45)
 	value = models.CharField(max_length=100)
 	series = models.ForeignKey(Series)
 
+
 class SinglePoint(models.Model, ExplainableMixin):
 	name = models.CharField(max_length=45)
 	series = models.ForeignKey(Series)
+
 
 class SinglePointOuter(models.Model, ExplainableMixin):
 	lagrangian = models.FloatField()
@@ -45,6 +51,7 @@ class SinglePointOuter(models.Model, ExplainableMixin):
 	gradient = models.FloatField()
 	scfcycles = models.IntegerField()
 	otnumber = models.IntegerField()
+
 
 class SinglePointAttributes(models.Model, ExplainableMixin):
 	key = models.CharField(max_length=45)
@@ -104,7 +111,7 @@ class ScaledCoordinate(models.Model, ExplainableMixin):
 	mdstep = models.ForeignKey(MDStep)
 
 
-class ScaledCoordinatesWrapped(models.Model, ExplainableMixin):
+class ScaledCoordinateWrapped(models.Model, ExplainableMixin):
 	x = models.FloatField()
 	y = models.FloatField()
 	z = models.FloatField()
@@ -131,6 +138,7 @@ class MDRunSettings(models.Model, ExplainableMixin):
 class MDRunAttributes(models.Model, ExplainableMixin):
 	key = models.CharField(max_length=45)
 	value = models.CharField(max_length=200)
+	mdrun = models.ForeignKey(MDRun)
 
 
 class StepCell(models.Model, ExplainableMixin):
