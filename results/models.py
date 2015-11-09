@@ -50,3 +50,129 @@ class SinglePointAttributes(models.Model, ExplainableMixin):
 	key = models.CharField(max_length=45)
 	value = models.CharField(max_length=100)
 	series = models.ForeignKey(Series)
+
+
+class MDRun(models.Model, ExplainableMixin):
+	part = models.IntegerField()
+	type = models.CharField(max_length=20)
+	series = models.ForeignKey(Series)
+
+
+class MDStep(models.Model, ExplainableMixin):
+	mdrun = models.ForeignKey(MDRun)
+	stepnumber = models.IntegerField()
+	steptime = models.FloatField()
+	masked = models.BooleanField()
+
+
+class Atom(models.Model, ExplainableMixin):
+	element = models.CharField(max_length=3)
+	kind = models.CharField(max_length=10)
+	system = models.ForeignKey(System)
+
+
+class Coordinate(models.Model, ExplainableMixin):
+	x = models.FloatField()
+	y = models.FloatField()
+	z = models.FloatField()
+	atom = models.ForeignKey(Atom)
+	mdstep = models.ForeignKey(MDStep)
+
+
+class CoordinateWrapped(models.Model, ExplainableMixin):
+	x = models.FloatField()
+	y = models.FloatField()
+	z = models.FloatField()
+	coordinate = models.ForeignKey(Coordinate)
+
+
+class HirshfeldCharge(models.Model, ExplainableMixin):
+	charge = models.FloatField()
+	alpha = models.FloatField()
+	beta = models.FloatField()
+	spin = models.FloatField()
+	reference = models.FloatField()
+	atom = models.ForeignKey(Atom)
+	mdstep = models.ForeignKey(MDStep)
+
+
+class ScaledCoordinate(models.Model, ExplainableMixin):
+	x = models.FloatField()
+	y = models.FloatField()
+	z = models.FloatField()
+	atom = models.ForeignKey(Atom)
+	mdstep = models.ForeignKey(MDStep)
+
+
+class ScaledCoordinatesWrapped(models.Model, ExplainableMixin):
+	x = models.FloatField()
+	y = models.FloatField()
+	z = models.FloatField()
+	scaledcoordinate = models.ForeignKey(ScaledCoordinate)
+
+
+class MullikenCharge(models.Model, ExplainableMixin):
+	charge = models.FloatField()
+	alpha = models.FloatField()
+	beta = models.FloatField()
+	spin = models.FloatField()
+	atom = models.ForeignKey(Atom)
+	mdstep = models.ForeignKey(MDStep)
+
+
+class MDRunSettings(models.Model, ExplainableMixin):
+	temperature = models.FloatField()
+	pressure = models.FloatField()
+	multiplicity = models.IntegerField()
+	timestep = models.FloatField()
+	mdrun = models.ForeignKey(MDRun)
+
+
+class MDRunAttributes(models.Model, ExplainableMixin):
+	key = models.CharField(max_length=45)
+	value = models.CharField(max_length=200)
+
+
+class StepCell(models.Model, ExplainableMixin):
+	a = models.FloatField()
+	b = models.FloatField()
+	c = models.FloatField()
+	alpha = models.FloatField()
+	beta = models.FloatField()
+	gamma = models.FloatField()
+	mdstep = models.ForeignKey(MDStep)
+
+
+class StepEnsemble(models.Model, ExplainableMixin):
+	temperature = models.FloatField()
+	pressure = models.FloatField()
+	volume = models.FloatField()
+	conserved = models.FloatField()
+	mdstep = models.ForeignKey(MDStep)
+
+
+class StepContributionsQM(models.Model, ExplainableMixin):
+	coreselfenergy = models.FloatField()
+	corehamiltonian = models.FloatField()
+	hartree = models.FloatField()
+	xc = models.FloatField()
+	hfx = models.FloatField()
+	dispersion = models.FloatField()
+	constraint = models.FloatField()
+	mdstep = models.ForeignKey(MDStep)
+
+
+class StepEnergy(models.Model, ExplainableMixin):
+	etot = models.FloatField()
+	epot = models.FloatField()
+	ekin = models.FloatField()
+	drift = models.FloatField()
+	mdstep = models.ForeignKey(MDStep)
+
+
+class StepMetaQM(models.Model, ExplainableMixin):
+	iasd = models.FloatField()
+	s2 = models.FloatField()
+	scfcycles = models.FloatField()
+	otcycles = models.FloatField()
+	mdstep = models.ForeignKey(MDStep)
