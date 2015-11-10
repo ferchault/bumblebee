@@ -11,6 +11,7 @@ from results.models import *
 # rest API imports
 from rest_framework import viewsets
 from results.serializers import *
+from rest_framework import filters
 
 
 def index(request):
@@ -45,8 +46,10 @@ class SystemViewSet(viewsets.ModelViewSet):
 
 
 class BucketViewSet(viewsets.ModelViewSet):
-	queryset = Bucket.objects.all().order_by('name')
 	serializer_class = BucketSerializer
+	queryset = Bucket.objects.all()
+	filter_backends = (filters.DjangoFilterBackend,)
+	filter_fields = ('name', 'token', 'comment', 'updated', 'system')
 
 
 class SeriesViewSet(viewsets.ModelViewSet):
