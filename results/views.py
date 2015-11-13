@@ -43,6 +43,8 @@ class SystemCreate(CreateView):
 class SystemViewSet(viewsets.ModelViewSet):
 	queryset = System.objects.all().order_by('name')
 	serializer_class = SystemSerializer
+	filter_backends = (filters.DjangoFilterBackend,)
+	filter_fields = ('name', )
 
 
 class BucketViewSet(viewsets.ModelViewSet):
