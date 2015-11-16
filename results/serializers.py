@@ -11,13 +11,13 @@ class SystemSerializer(serializers.ModelSerializer):
 class BucketSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Bucket
-		fields = ('name', 'token', 'comment', 'updated', 'system')
+		fields = ('id', 'name', 'token', 'comment', 'updated', 'system')
 
 
 class SeriesSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Series
-		fields = ('name', 'bucket')
+		fields = ('id', 'name', 'bucket')
 
 
 class SeriesAttributesSerializer(serializers.ModelSerializer):

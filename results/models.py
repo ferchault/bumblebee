@@ -1,6 +1,7 @@
 # django modules
 from django.db import models
 from django.forms import ModelForm
+from django.utils import timezone
 from bumblebee.models import ExplainableMixin
 
 
@@ -23,10 +24,15 @@ class SystemForm(ModelForm):
 
 class Bucket(models.Model, ExplainableMixin):
 	name = models.CharField(max_length=45)
-	token = models.CharField(max_length=50)
-	comment = models.CharField(max_length=200)
-	updated = models.DateTimeField()
+	token = models.CharField(max_length=50, blank=True)
+	comment = models.CharField(max_length=200, blank=True)
+	updated = models.DateTimeField(blank=True)
 	system = models.ForeignKey(System)
+
+	def save(self, *args, **kwargs):
+		if not self.id:
+			self.updated = timezone.now()
+		return super(Bucket, self).save(*args, **kwargs)
 
 
 class Series(models.Model, ExplainableMixin):
