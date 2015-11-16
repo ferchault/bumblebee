@@ -32,6 +32,12 @@ class BumblebeeApi(object):
 		else:
 			return None
 
+	def create_if_missing(self, objecttype, **kwargs):
+		instance = self.get_if_exists(objecttype, **kwargs)
+		if instance is None:
+			instance = self.create(objecttype, **kwargs)
+		return instance
+
 	def create(self, objecttype, **kwargs):
 		if objecttype not in self._urls:
 			raise ValueError('Object type not known on server side.')
@@ -59,24 +65,9 @@ class CP2KParser(object):
 
 bb = BumblebeeApi(baseurl)
 
-# get system
-server_system = bb.get_if_exists('system', name=system)
-if server_system is None:
-	print 'Creating new system.'
-	server_system = bb.create('system', name=system)
+# get meta data
+server_system = bb.create_if_missing('system', name=system)
+server_bucket = bb.create_if_missing('bucket', token=bucket, name=bucket_name, system=server_system['id'])
+server_series = bb.create_if_missing('series', bucket=server_bucket['id'], name=series)
 
-# get bucket
-server_bucket = bb.get_if_exists('bucket', token=bucket, name=bucket_name, system=server_system['id'])
-if server_bucket is None:
-	print 'Creating new bucket.'
-	server_bucket = bb.create('bucket', token=bucket, name=bucket_name, system=server_system['id'])
 
-print server_bucket
-
-# get series
-server_series = bb.get_if_exists('series', bucket=server_bucket['id'], name=series)
-if server_series is None:
-	print 'Creating new series.'
-	server_series = bb.create('series', bucket=server_bucket['id'], name=series)
-
-print server_series
