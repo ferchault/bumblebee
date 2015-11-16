@@ -67,7 +67,7 @@ class SinglePointAttributes(models.Model, ExplainableMixin):
 
 class MDRun(models.Model, ExplainableMixin):
 	part = models.IntegerField()
-	type = models.CharField(max_length=20)
+	type = models.CharField(max_length=20, blank=True)
 	series = models.ForeignKey(Series)
 
 
@@ -134,10 +134,10 @@ class MullikenCharge(models.Model, ExplainableMixin):
 
 
 class MDRunSettings(models.Model, ExplainableMixin):
-	temperature = models.FloatField()
-	pressure = models.FloatField()
-	multiplicity = models.IntegerField()
-	timestep = models.FloatField()
+	temperature = models.FloatField(blank=True, null=True)
+	pressure = models.FloatField(blank=True, null=True)
+	multiplicity = models.IntegerField(blank=True, null=True)
+	timestep = models.FloatField(blank=True, null=True)
 	mdrun = models.ForeignKey(MDRun)
 
 
