@@ -5,136 +5,136 @@ from rest_framework import serializers
 class SystemSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = System
-		fields = ('id', 'name',)
+		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
 
 
 class BucketSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Bucket
-		fields = ('id', 'name', 'token', 'comment', 'updated', 'system')
+		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
 
 
 class SeriesSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Series
-		fields = ('id', 'name', 'bucket')
+		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
 
 
 class SeriesAttributesSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = SeriesAttributes
-		fields = ('key', 'value', 'series')
+		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
 
 
 class SinglePointSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = SinglePoint
-		fields = ('name', 'series')
+		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
 
 
 class SinglePointOuterSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = SinglePointOuter
-		fields = ('lagrangian', 'orderparameter', 'gradient', 'scfcycles', 'otnumber')
+		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
 
 
 class SinglePointAttributesSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = SinglePointAttributes
-		fields = ('key', 'value', 'series')
+		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
 
 
 class MDRunSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = MDRun
-		fields = ('part', 'type', 'series')
+		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
 
 
 class MDStepSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = MDStep
-		fields = ('mdrun', 'stepnumber', 'steptime', 'masked')
+		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
 
 
 class AtomSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Atom
-		fields = ('element', 'kind', 'system')
+		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
 
 
 class CoordinateSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Coordinate
-		fields = ('x', 'y', 'z', 'atom', 'mdstep')
+		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
 
 
 class CoordinateWrappedSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = CoordinateWrapped
-		fields = ('x', 'y', 'z', 'coordinate')
+		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
 
 
 class HirshfeldChargeSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = HirshfeldCharge
-		fields = ('charge', 'alpha', 'beta', 'spin', 'reference', 'atom', 'mdstep')
+		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
 
 
 class ScaledCoordinateSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = ScaledCoordinate
-		fields = ('x', 'y', 'z', 'atom', 'mdstep')
+		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
 
 
 class ScaledCoordinateWrappedSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = ScaledCoordinateWrapped
-		fields = ('x', 'y', 'z', 'scaledcoordinate')
+		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
 
 
 class MullikenChargeSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = MullikenCharge
-		fields = ('charge', 'alpha', 'beta', 'spin', 'atom', 'mdstep')
+		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
 
 
 class MDRunSettingsSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = MDRunSettings
-		fields = ('temperature', 'pressure', 'multiplicity', 'timestep', 'mdrun')
+		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
 
 
 class MDRunAttributesSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = MDRunAttributes
-		fields = ('key', 'value', 'mdrun')
+		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
 
 
 class StepCellSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = StepCell
-		fields = ('a', 'b', 'c', 'alpha', 'beta', 'gamma', 'mdstep')
+		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
 
 
 class StepEnsembleSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = StepEnsemble
-		fields = ('temperature', 'pressure', 'volume', 'conserved', 'mdstep')
+		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
 
 
 class StepContributionsQMSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = StepContributionsQM
-		fields = ('coreselfenergy', 'corehamiltonian', 'hartree', 'xc', 'hfx', 'dispersion', 'constraint', 'mdstep')
+		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
 
 
 class StepEnergySerializer(serializers.ModelSerializer):
 	class Meta:
 		model = StepEnergy
-		fields = ('etot', 'epot', 'ekin', 'drift', 'mdstep')
+		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
 
 
 class StepMetaQMSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = StepMetaQM
-		fields = ('iasd', 's2', 'scfcycles', 'otcycles', 'mdstep')
+		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
