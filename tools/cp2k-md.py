@@ -57,6 +57,112 @@ class CP2KParser(object):
 		self._inputfile = [_.strip() for _ in open(inputfile).readlines()]
 		self._restartfile = open(restartfile).readlines()
 		self._coordfile = coordfile
+		self._pos = 0
+		self._framedata = None
+
+	def skip_header(self):
+		""" Set the internal cursor to the beginning of the MD run.	"""
+		if self._pos != 0:
+			return
+		for idx in range(len(self._logfile)):
+			if 'GO CP2K GO!' in self._logfile[idx]:
+				self._pos = idx
+				return
+
+	def find_next_frame(self):
+		""" Sets the next complete frame for analysis.
+		:return: Boolean. True if a frame could be loaded.
+		"""
+		first = False
+		for idx in range(self._pos, len(self._logfile)):
+			if '*' * 79 in self._logfile[idx]:
+				if first:
+					self._framedata = self._logfile[self._pos:idx]
+					self._pos = idx + 1
+					return True
+				else:
+					first = True
+		self._framedata = None
+		return False
+
+	def progress(self):
+		""" Gives an estimate for the parsing progress.
+		:return: Float (percent).
+		"""
+		return float(self._pos) / len(self._logfile)*100
+
+	def get_frame_desired(self, kind):
+		def keep_float(var):
+			try:
+				val = float(var)
+			except:
+				return None
+			return val
+
+		keyword = dict((
+			('stepnumber', 'STEP NUMBER'),
+			('steptime', 'TIME [fs]'),
+			('celllengths', 'CELL LNTHS[bohr]'),
+			('cellangles', 'CELL ANGLS[deg]'),
+			('temperature', 'TEMPERATURE [K]'),
+			('pressure', 'PRESSURE [bar]'),
+			('volume', 'VOLUME[bohr^3]'),
+			('conserved', 'CONSERVED QUANTITY [hartree]'),
+			('coreselfenergy', 'Self energy of the core charge distribution:'),
+			('corehamiltonian', 'Core Hamiltonian energy:'),
+			('hartree', 'Hartree energy:'),
+			('xc', 'Exchange-correlation energy:'),
+			('hfx', 'Hartree-Fock Exchange energy:'),
+			('dispersion', 'Dispersion energy:'),
+			('etot', 'ENERGY| Total FORCE_EVAL ( QS ) energy (a.u.):'),
+			('epot', 'POTENTIAL ENERGY[hartree]'),
+			('ekin', 'KINETIC ENERGY [hartree]'),
+			('drift', 'ENERGY DRIFT PER ATOM [K]'),
+			('iasd', 'Integrated absolute spin density  :'),
+			('s2', 'Ideal and single determinant S**2 :'),
+			('scfcycles', 'outer SCF loop converged in'),
+			('otcycles', 'outer SCF loop converged in'),
+		))[kind]
+		converter = dict((
+			('celllengths', lambda _: _ * 0.52917721967),
+			('volume', lambda _: _ * 0.52917721967**3),
+			('conserved', lambda _: _ * 27.21138602),
+			('coreselfenergy', lambda _: _ * 27.21138602),
+			('corehamiltonian', lambda _: _ * 27.21138602),
+			('hartree', lambda _: _ * 27.21138602),
+			('xc', lambda _: _ * 27.21138602),
+			('hfx', lambda _: _ * 27.21138602),
+			('etot', lambda _: _ * 27.21138602),
+			('epot', lambda _: _ * 27.21138602),
+			('ekin', lambda _: _ * 27.21138602),
+			('drift', lambda _: _ * 27.21138602),
+		))
+		if kind in converter:
+			converter = converter[kind]
+		else:
+			converter = lambda _: _
+		if self._framedata is None:
+			return None
+		for idx in range(len(self._framedata))[::-1][:20]:
+			if keyword in self._framedata[idx]:
+				parts = self._framedata[idx].split()
+				parts = [converter(_) for _ in map(keep_float, parts) if _ is not None]
+				if kind == 'scfcycles':
+					parts = [parts[1]]
+				if kind == 'otcycles':
+					parts = [parts[0]]
+				if len(parts) == 1:
+					return parts[0]
+				return parts
+		return None
+
+	def get_frame_dimensions(self):
+		if self._framedata is None:
+			raise ValueError('No frame loaded.')
+
+		a, b, c = self.get_frame_desired('celllengths')
+		alpha, beta, gamma = self.get_frame_desired('cellangles')
+		return a, b, c, alpha, beta, gamma
 
 	def get_mdrun_desired(self, kind):
 		path = dict((
@@ -128,3 +234,31 @@ for setting in 'temperature pressure multiplicity timestep'.split():
 	except:
 		settings[setting] = None
 server_settings = bb.create('mdrunsettings', mdrun=server_mdrun['id'], **settings)
+
+cp.skip_header()
+while cp.find_next_frame():
+	print '\rProgress: %d%%' % int(cp.progress()),
+	stepnumber = cp.get_frame_desired('stepnumber')
+	steptime = cp.get_frame_desired('steptime')
+	server_mdstep = bb.create('mdstep', mdrun=server_mdrun['id'], stepnumber=stepnumber, steptime=steptime)
+
+	dimensions = cp.get_frame_dimensions()
+	keys = 'a b c alpha beta gamma'.split()
+	server_stepcell = bb.create('stepcell', mdstep=server_mdstep['id'], **dict(zip(keys, dimensions)))
+
+	keys = 'temperature pressure volume'.split()
+	data = [cp.get_frame_desired(_)[0] for _ in keys]
+	server_stepensemble = bb.create('stepensemble', mdstep=server_mdstep['id'], conserved=cp.get_frame_desired('conserved'), **dict(zip(keys, data)))
+
+	keys = 'coreselfenergy corehamiltonian hartree xc hfx dispersion'.split()
+	data = [cp.get_frame_desired(_) for _ in keys]
+	server_stepcontributionsqm = bb.create('stepcontributionsqm', mdstep=server_mdstep['id'], **dict(zip(keys, data)))
+
+	keys = 'etot epot ekin drift'.split()
+	data = [cp.get_frame_desired(_) for _ in keys]
+	server_stepenergy = bb.create('stepenergy', mdstep=server_mdstep['id'], **dict(zip(keys, data)))
+
+	keys = 'iasd s2 scfcycles otcycles'.split()
+	data = [cp.get_frame_desired(_) for _ in keys]
+	server_stepmetaqm = bb.create('stepmetaqm', mdstep=server_mdstep['id'], **dict(zip(keys, data)))
+print '\nComplete'

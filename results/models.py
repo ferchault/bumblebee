@@ -73,9 +73,9 @@ class MDRun(models.Model, ExplainableMixin):
 
 class MDStep(models.Model, ExplainableMixin):
 	mdrun = models.ForeignKey(MDRun)
-	stepnumber = models.IntegerField()
-	steptime = models.FloatField()
-	masked = models.BooleanField()
+	stepnumber = models.IntegerField(blank=True, null=True)
+	steptime = models.FloatField(blank=True, null=True)
+	masked = models.NullBooleanField(blank=True, default=False)
 
 
 class Atom(models.Model, ExplainableMixin):
@@ -148,45 +148,45 @@ class MDRunAttributes(models.Model, ExplainableMixin):
 
 
 class StepCell(models.Model, ExplainableMixin):
-	a = models.FloatField()
-	b = models.FloatField()
-	c = models.FloatField()
-	alpha = models.FloatField()
-	beta = models.FloatField()
-	gamma = models.FloatField()
+	a = models.FloatField(blank=True, null=True)
+	b = models.FloatField(blank=True, null=True)
+	c = models.FloatField(blank=True, null=True)
+	alpha = models.FloatField(blank=True, null=True)
+	beta = models.FloatField(blank=True, null=True)
+	gamma = models.FloatField(blank=True, null=True)
 	mdstep = models.ForeignKey(MDStep)
 
 
 class StepEnsemble(models.Model, ExplainableMixin):
-	temperature = models.FloatField()
-	pressure = models.FloatField()
-	volume = models.FloatField()
-	conserved = models.FloatField()
+	temperature = models.FloatField(blank=True, null=True)
+	pressure = models.FloatField(blank=True, null=True)
+	volume = models.FloatField(blank=True, null=True)
+	conserved = models.FloatField(blank=True, null=True)
 	mdstep = models.ForeignKey(MDStep)
 
 
 class StepContributionsQM(models.Model, ExplainableMixin):
-	coreselfenergy = models.FloatField()
-	corehamiltonian = models.FloatField()
-	hartree = models.FloatField()
-	xc = models.FloatField()
-	hfx = models.FloatField()
-	dispersion = models.FloatField()
-	constraint = models.FloatField()
+	coreselfenergy = models.FloatField(blank=True, null=True)
+	corehamiltonian = models.FloatField(blank=True, null=True)
+	hartree = models.FloatField(blank=True, null=True)
+	xc = models.FloatField(blank=True, null=True)
+	hfx = models.FloatField(blank=True, null=True)
+	dispersion = models.FloatField(blank=True, null=True)
+	constraint = models.FloatField(blank=True, null=True)
 	mdstep = models.ForeignKey(MDStep)
 
 
 class StepEnergy(models.Model, ExplainableMixin):
-	etot = models.FloatField()
-	epot = models.FloatField()
-	ekin = models.FloatField()
-	drift = models.FloatField()
+	etot = models.FloatField(blank=True, null=True)
+	epot = models.FloatField(blank=True, null=True)
+	ekin = models.FloatField(blank=True, null=True)
+	drift = models.FloatField(blank=True, null=True)
 	mdstep = models.ForeignKey(MDStep)
 
 
 class StepMetaQM(models.Model, ExplainableMixin):
-	iasd = models.FloatField()
-	s2 = models.FloatField()
-	scfcycles = models.FloatField()
-	otcycles = models.FloatField()
+	iasd = models.FloatField(blank=True, null=True)
+	s2 = models.FloatField(blank=True, null=True)
+	scfcycles = models.FloatField(blank=True, null=True)
+	otcycles = models.FloatField(blank=True, null=True)
 	mdstep = models.ForeignKey(MDStep)
