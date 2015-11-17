@@ -79,8 +79,9 @@ class MDStep(models.Model, ExplainableMixin):
 
 
 class Atom(models.Model, ExplainableMixin):
-	element = models.CharField(max_length=3)
+	element = models.CharField(max_length=3, blank=True, null=True)
 	kind = models.CharField(max_length=10)
+	number = models.IntegerField(default=0)
 	system = models.ForeignKey(System)
 
 

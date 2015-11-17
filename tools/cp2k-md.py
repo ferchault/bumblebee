@@ -25,7 +25,12 @@ class BumblebeeApi(object):
 		if objecttype not in self._urls:
 			raise ValueError('Object type not known on server side.')
 
-		result = r.get(self._urls[objecttype], params=kwargs).json()
+		result = r.get(self._urls[objecttype], params=kwargs)
+		try:
+			result = result.json()
+		except:
+			print result.content
+			raise ValueError('No JSON answer from server.')
 		if not multiple and len(result) > 1:
 			raise ValueError('Filter criteria not narrow enough: non-unique answer from server.')
 		if len(result) == 0:
@@ -52,13 +57,38 @@ class BumblebeeApi(object):
 
 
 class CP2KParser(object):
-	def __init__(self, logfile=None, inputfile=None, restartfile=None, coordfile=False):
+	def __init__(self, logfile=None, inputfile=None, restartfile=None, coordfile=None, xyzfile=None):
 		self._logfile = open(logfile).readlines()
 		self._inputfile = [_.strip() for _ in open(inputfile).readlines()]
 		self._restartfile = open(restartfile).readlines()
 		self._coordfile = coordfile
+		self._xyzfile = xyzfile
+		self._xyzfileparsed = False
 		self._pos = 0
 		self._framedata = None
+		self._noatoms = None
+
+	def get_atom_list(self):
+		if self._xyzfile is None:
+			raise ValueError('No atom list information available.')
+
+		if not self._xyzfileparsed:
+			try:
+				self._xyzfile = open(self._xyzfile).readlines()
+			except:
+				raise ValueError('Unable to open XYZ file.')
+
+		try:
+			noatoms = int(self._xyzfile[0].strip())
+			if noatoms != len(self._xyzfile) - 2:
+				raise ValueError()
+		except:
+			raise ValueError('Invalid XYZ file.')
+
+		kinds = [_.split()[0] for _ in self._xyzfile[2:]]
+		self._xyzfileparsed = True
+		self._noatoms = noatoms
+		return kinds
 
 	def skip_header(self):
 		""" Set the internal cursor to the beginning of the MD run.	"""
@@ -226,7 +256,7 @@ server_mdrun = bb.create('mdrun', series=server_series['id'], part=highest_part)
 print 'Loading data into %s.%s.%s.%d' % (server_system['name'], server_bucket['token'], server_series['name'], server_mdrun['part'])
 
 # load CP2K data
-cp = CP2KParser(basepath + 'run.log', basepath + 'run.inp', basepath + 'run.base', basepath + '/traj/pos-pos-1.dcd')
+cp = CP2KParser(basepath + 'run.log', basepath + 'run.inp', basepath + 'run.base', basepath + '/traj/pos-pos-1.dcd', basepath + '/../input/input.xyz')
 settings = dict()
 for setting in 'temperature pressure multiplicity timestep'.split():
 	try:
@@ -235,6 +265,14 @@ for setting in 'temperature pressure multiplicity timestep'.split():
 		settings[setting] = None
 server_settings = bb.create('mdrunsettings', mdrun=server_mdrun['id'], **settings)
 
+# check system definition
+server_atoms = bb.get_if_exists('atom', multiple=True, system=server_system['id'])
+if server_atoms is None:
+	print 'First import for this system. Creating atoms.'
+	for idx, kind in enumerate(cp.get_atom_list()):
+		bb.create('atom', kind=kind, number=idx+1, system=server_system['id'])
+
+# import frames
 cp.skip_header()
 while cp.find_next_frame():
 	print '\rProgress: %d%%' % int(cp.progress()),
