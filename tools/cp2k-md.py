@@ -2,6 +2,7 @@
 
 import argparse
 import requests as r
+import MDAnalysis as mda
 
 baseurl = 'http://localhost:8000/results/api/'
 system = 'hematite-IOH3'
@@ -61,7 +62,7 @@ class CP2KParser(object):
 		self._logfile = open(logfile).readlines()
 		self._inputfile = [_.strip() for _ in open(inputfile).readlines()]
 		self._restartfile = open(restartfile).readlines()
-		self._coordfile = coordfile
+		self._coordfile = mda.coordinates.DCD.DCDReader(coordfile)
 		self._xyzfile = xyzfile
 		self._xyzfileparsed = False
 		self._pos = 0
@@ -89,6 +90,10 @@ class CP2KParser(object):
 		self._xyzfileparsed = True
 		self._noatoms = noatoms
 		return kinds
+
+	def get_coordinates(self, frame):
+		if self._coordfile is not None:
+			return self._coordfile[frame]._pos
 
 	def skip_header(self):
 		""" Set the internal cursor to the beginning of the MD run.	"""
@@ -270,12 +275,15 @@ server_atoms = bb.get_if_exists('atom', multiple=True, system=server_system['id'
 if server_atoms is None:
 	print 'First import for this system. Creating atoms.'
 	for idx, kind in enumerate(cp.get_atom_list()):
-		bb.create('atom', kind=kind, number=idx+1, system=server_system['id'])
+		server_atoms = bb.create('atom', kind=kind, number=idx+1, system=server_system['id'])
 
 # import frames
 cp.skip_header()
+output_frame = 0
 while cp.find_next_frame():
 	print '\rProgress: %d%%' % int(cp.progress()),
+
+	# load metadata
 	stepnumber = cp.get_frame_desired('stepnumber')
 	steptime = cp.get_frame_desired('steptime')
 	server_mdstep = bb.create('mdstep', mdrun=server_mdrun['id'], stepnumber=stepnumber, steptime=steptime)
@@ -299,4 +307,15 @@ while cp.find_next_frame():
 	keys = 'iasd s2 scfcycles otcycles'.split()
 	data = [cp.get_frame_desired(_) for _ in keys]
 	server_stepmetaqm = bb.create('stepmetaqm', mdstep=server_mdstep['id'], **dict(zip(keys, data)))
+
+	# load coordinates
+	pos = cp.get_coordinates(output_frame)
+	assert(len(pos) == len(server_atoms))
+	for atom_number, data in enumerate(zip(pos, server_atoms)):
+		coord, server_atom = data
+		x, y, z = coord
+		bb.create('coordinate', atom=server_atom['id'], x=x, y=y, z=z, mdstep=server_mdstep['id'])
+
+	# counter
+	output_frame += 1
 print '\nComplete'
