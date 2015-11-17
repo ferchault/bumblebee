@@ -5,9 +5,9 @@ from django.conf.urls import patterns, url, include
 from results import views
 
 # rest API imports
-from rest_framework import routers
+from rest_framework_bulk.routes import BulkRouter
 
-router = routers.DefaultRouter()
+router = BulkRouter()
 router.register(r'system', views.SystemViewSet)
 router.register(r'bucket', views.BucketViewSet)
 router.register(r'series', views.SeriesViewSet)

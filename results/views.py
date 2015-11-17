@@ -12,6 +12,12 @@ from results.models import *
 from rest_framework import viewsets
 from results.serializers import *
 from rest_framework import filters
+from rest_framework_bulk import (
+    BulkListSerializer,
+    BulkSerializerMixin,
+    ListBulkCreateUpdateDestroyAPIView,
+)
+from rest_framework_bulk.generics import BulkModelViewSet
 
 
 def index(request):
@@ -110,7 +116,7 @@ class AtomViewSet(viewsets.ModelViewSet):
 	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete])
 
 
-class CoordinateViewSet(viewsets.ModelViewSet):
+class CoordinateViewSet(BulkModelViewSet):
 	queryset = Coordinate.objects.all()
 	serializer_class = CoordinateSerializer
 	filter_backends = (filters.DjangoFilterBackend,)

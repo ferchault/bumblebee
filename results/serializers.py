@@ -1,5 +1,10 @@
 from results.models import *
 from rest_framework import serializers
+from rest_framework_bulk import (
+    BulkListSerializer,
+    BulkSerializerMixin,
+    ListBulkCreateUpdateDestroyAPIView,
+)
 
 
 class SystemSerializer(serializers.ModelSerializer):
@@ -62,7 +67,7 @@ class AtomSerializer(serializers.ModelSerializer):
 		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
 
 
-class CoordinateSerializer(serializers.ModelSerializer):
+class CoordinateSerializer(BulkSerializerMixin, serializers.ModelSerializer):
 	class Meta:
 		model = Coordinate
 		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])

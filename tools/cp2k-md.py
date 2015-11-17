@@ -56,6 +56,15 @@ class BumblebeeApi(object):
 			raise ValueError('Unable to add new entry because of the following server answer: ' + str(result.json()))
 		return result.json()
 
+	def create_bulk(self, objecttype, data):
+		if objecttype not in self._urls:
+			raise ValueError('Object type not known on server side.')
+
+		result = r.post(self._urls[objecttype], json=data)
+		if result.status_code != 201:
+			raise ValueError('Unable to add new entry because of the following server answer: ' + str(result.json()))
+		return result.json()
+
 
 class CP2KParser(object):
 	def __init__(self, logfile=None, inputfile=None, restartfile=None, coordfile=None, xyzfile=None):
@@ -276,6 +285,7 @@ if server_atoms is None:
 	print 'First import for this system. Creating atoms.'
 	for idx, kind in enumerate(cp.get_atom_list()):
 		server_atoms = bb.create('atom', kind=kind, number=idx+1, system=server_system['id'])
+	server_atoms = bb.get_if_exists('atom', multiple=True, system=server_system['id'])
 
 # import frames
 cp.skip_header()
@@ -311,10 +321,13 @@ while cp.find_next_frame():
 	# load coordinates
 	pos = cp.get_coordinates(output_frame)
 	assert(len(pos) == len(server_atoms))
+	objects_cache = list()
 	for atom_number, data in enumerate(zip(pos, server_atoms)):
 		coord, server_atom = data
-		x, y, z = coord
-		bb.create('coordinate', atom=server_atom['id'], x=x, y=y, z=z, mdstep=server_mdstep['id'])
+		x, y, z = map(float, coord)
+		obj = {'x': x, 'y': y, 'z': z, 'atom': server_atom['id'], 'mdstep': server_mdstep['id']}
+		objects_cache.append(obj)
+	bb.create_bulk('coordinate', objects_cache)
 
 	# counter
 	output_frame += 1
