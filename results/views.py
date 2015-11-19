@@ -112,7 +112,7 @@ class MDStepViewSet(viewsets.ModelViewSet):
 class AtomViewSet(viewsets.ModelViewSet):
 	queryset = Atom.objects.all()
 	serializer_class = AtomSerializer
-	filter_backends = (filters.DjangoFilterBackend,)
+	filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter)
 	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete])
 
 
@@ -151,7 +151,7 @@ class ScaledCoordinateWrappedViewSet(viewsets.ModelViewSet):
 	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete])
 
 
-class MullikenChargeViewSet(viewsets.ModelViewSet):
+class MullikenChargeViewSet(BulkModelViewSet):
 	queryset = MullikenCharge.objects.all()
 	serializer_class = MullikenChargeSerializer
 	filter_backends = (filters.DjangoFilterBackend,)

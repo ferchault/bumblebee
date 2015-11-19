@@ -97,7 +97,7 @@ class ScaledCoordinateWrappedSerializer(serializers.ModelSerializer):
 		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
 
 
-class MullikenChargeSerializer(serializers.ModelSerializer):
+class MullikenChargeSerializer(BulkSerializerMixin, serializers.ModelSerializer):
 	class Meta:
 		model = MullikenCharge
 		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])

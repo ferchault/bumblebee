@@ -86,9 +86,9 @@ class Atom(models.Model, ExplainableMixin):
 
 
 class Coordinate(models.Model, ExplainableMixin):
-	x = models.FloatField()
-	y = models.FloatField()
-	z = models.FloatField()
+	x = models.FloatField(blank=True, null=True)
+	y = models.FloatField(blank=True, null=True)
+	z = models.FloatField(blank=True, null=True)
 	atom = models.ForeignKey(Atom)
 	mdstep = models.ForeignKey(MDStep)
 
@@ -126,10 +126,10 @@ class ScaledCoordinateWrapped(models.Model, ExplainableMixin):
 
 
 class MullikenCharge(models.Model, ExplainableMixin):
-	charge = models.FloatField()
-	alpha = models.FloatField()
-	beta = models.FloatField()
-	spin = models.FloatField()
+	charge = models.FloatField(blank=True, null=True)
+	alpha = models.FloatField(blank=True, null=True)
+	beta = models.FloatField(blank=True, null=True)
+	spin = models.FloatField(blank=True, null=True)
 	atom = models.ForeignKey(Atom)
 	mdstep = models.ForeignKey(MDStep)
 

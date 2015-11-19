@@ -200,6 +200,31 @@ class CP2KParser(object):
 				return parts
 		return None
 
+	def get_frame_mulliken_charges(self):
+		if self._framedata is None:
+			raise ValueError('No frame loaded.')
+
+		chargelines = []
+		begin = None
+		for idx in range(len(self._framedata)):
+			if 'MULLIKEN POPULATION ANALYSIS' in self._framedata[idx]:
+				begin = idx + 3
+			if '# Total charge and spin' in self._framedata[idx] and begin is not None:
+				chargelines = self._framedata[begin:idx]
+		if len(chargelines) == 0:
+			return None
+
+		objs = list()
+		for line in chargelines:
+			parts = line.strip().split()
+			objs.append({
+				'alpha': float(parts[3]),
+				'beta': float(parts[4]),
+				'charge': float(parts[5]),
+				'spin': float(parts[6]),
+			})
+		return objs
+
 	def get_frame_dimensions(self):
 		if self._framedata is None:
 			raise ValueError('No frame loaded.')
@@ -280,12 +305,12 @@ for setting in 'temperature pressure multiplicity timestep'.split():
 server_settings = bb.create('mdrunsettings', mdrun=server_mdrun['id'], **settings)
 
 # check system definition
-server_atoms = bb.get_if_exists('atom', multiple=True, system=server_system['id'])
+server_atoms = bb.get_if_exists('atom', multiple=True, system=server_system['id'], ordering='number')
 if server_atoms is None:
 	print 'First import for this system. Creating atoms.'
 	for idx, kind in enumerate(cp.get_atom_list()):
 		server_atoms = bb.create('atom', kind=kind, number=idx+1, system=server_system['id'])
-	server_atoms = bb.get_if_exists('atom', multiple=True, system=server_system['id'])
+	server_atoms = bb.get_if_exists('atom', multiple=True, system=server_system['id'], ordering='number')
 
 # import frames
 cp.skip_header()
@@ -327,7 +352,16 @@ while cp.find_next_frame():
 		x, y, z = map(float, coord)
 		obj = {'x': x, 'y': y, 'z': z, 'atom': server_atom['id'], 'mdstep': server_mdstep['id']}
 		objects_cache.append(obj)
-	bb.create_bulk('coordinate', objects_cache)
+	#bb.create_bulk('coordinate', objects_cache)
+
+	# load Mulliken charges
+	charges = cp.get_frame_mulliken_charges()
+	objects_cache = list()
+	for charge, server_atom in zip(charges, server_atoms):
+		charge['atom'] = server_atom['id']
+		charge['mdstep'] = server_mdstep['id']
+		objects_cache.append(charge)
+	bb.create_bulk('mullikencharge', objects_cache)
 
 	# counter
 	output_frame += 1
