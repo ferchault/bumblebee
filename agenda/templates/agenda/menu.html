@@ -1,11 +1,21 @@
 <li class="header">AGENDA</li>
-<li class="active"><a href="/agenda"><i class="fa fa-calendar"></i> <span>Overview</span></a></li>
-<li class="treeview">
+{% with url='/agenda/overview' %}
+    <li {% if url in request.path %} class="active"{% endif %}><a href="{{ url }}"><i class="fa fa-calendar"></i> <span>Overview</span></a></li>
+{%  endwith %}
+<li class="treeview {% if '/agenda/project' in request.path or '/agenda/status' in request.path or '/agenda/priority' in request.path or '/agenda/entry' in request.path %} active{% endif %}">
   <a href="#"><i class="fa fa-cogs"></i> <span>Configuration</span> <i class="fa fa-angle-left pull-right"></i></a>
   <ul class="treeview-menu">
-    <li><a href="/agenda/project"> <i class="fa fa-briefcase"></i>Project</a></li>
-    <li><a href="/agenda/status"><i class="fa fa-check"></i>Status</a></li>
-    <li><a href="/agenda/priority"><i class="fa fa-flag"></i>Priority</a></li>
-    <li><a href="/agenda/entry"><i class="fa fa-calendar-o"></i>Entry</a></li>
+      {% with url='/agenda/project' %}
+        <li {% if url in request.path %} class="active"{% endif %}><a href="{{ url }}"><i class="fa fa-briefcase"></i> <span>Project</span></a></li>
+    {%  endwith %}
+      {% with url='/agenda/status' %}
+        <li {% if url in request.path %} class="active"{% endif %}><a href="{{ url }}"><i class="fa fa-check"></i> <span>Status</span></a></li>
+    {%  endwith %}
+        {% with url='/agenda/priority' %}
+        <li {% if url in request.path %} class="active"{% endif %}><a href="{{ url }}"><i class="fa fa-flag"></i> <span>Priority</span></a></li>
+    {%  endwith %}
+        {% with url='/agenda/entry' %}
+        <li {% if url in request.path %} class="active"{% endif %}><a href="{{ url }}"><i class="fa fa-calendar-o"></i> <span>Entry</span></a></li>
+    {%  endwith %}
   </ul>
 </li>
