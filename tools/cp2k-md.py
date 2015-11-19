@@ -316,7 +316,7 @@ if server_atoms is None:
 cp.skip_header()
 output_frame = 0
 while cp.find_next_frame():
-	print '\rProgress: %d%%' % int(cp.progress()),
+	print '\rProgress: %5.2f%%' % cp.progress(),
 
 	# load metadata
 	stepnumber = cp.get_frame_desired('stepnumber')
