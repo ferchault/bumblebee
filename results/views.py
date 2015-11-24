@@ -4,9 +4,11 @@ from django.http import HttpResponse
 from django.template import RequestContext, loader
 from django.views.generic import ListView, CreateView
 from django.core.urlresolvers import reverse_lazy
+from django.db.models import Count
 
 # app-specific imports
 from results.models import *
+from bumblebee.models import *
 
 # rest API imports
 from rest_framework import viewsets
@@ -29,21 +31,18 @@ def index(request):
 	return render(request, 'results/index.html', context)
 
 
-class SystemListing(ListView):
+class SystemListing(ModelNameMixin, ListView):
 	model = System
 	template_name = 'listview-generic.html'
+	fields = ('name', 'bucket_count')
+	queryset = System.objects.annotate(bucket_count=Count('bucket'))
 
 
-class SystemCreate(CreateView):
+class SystemCreate(ModelNameMixin, CreateView):
 	model = System
 	form_class = SystemForm
 	success_url = reverse_lazy('results-system-list')
 	template_name = 'createview-generic.html'
-
-	def get_context_data(self, **kwargs):
-		context = super(SystemCreate, self).get_context_data(**kwargs)
-		context['modelname'] = self.model._meta.verbose_name.title()
-		return context
 
 
 class SystemViewSet(viewsets.ModelViewSet):

@@ -6,7 +6,7 @@ from bumblebee.models import ExplainableMixin
 
 
 class System(models.Model, ExplainableMixin):
-	name = models.CharField(max_length=45, help_text="Unique name of the physical system treated in this simulation.")
+	name = models.CharField(max_length=45, verbose_name='test', help_text="Unique name of the physical system treated in this simulation.")
 
 	@staticmethod
 	def explain():
@@ -14,6 +14,9 @@ class System(models.Model, ExplainableMixin):
 				'120 molecules, a single infinite graphene sheet and so on. For each system, there may be a number of '
 				'representations in terms of different topologies and atom kinds. A system definition is used for '
 				'grouping similar simulations.')
+
+	alias = {'bucket_count': 'Bucket count', 'name': 'System'}
+	link = 'name'
 
 
 class SystemForm(ModelForm):

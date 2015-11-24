@@ -19,16 +19,30 @@
                     <table class="table table-hover">
                         <tr>
                             {% for object in object_list|slice:":1" %}
-                                {% for field in object.get_fields %}
-                                    <th>{{ field.verbose_name }}</th>
+                                {% if fields|length == 0 %}
+                                    {% for field in object.get_fields %}
+                                        <th>{{ field.verbose_name }}</th>
+                                    {% endfor %}
+                                {% endif %}
+                                {% for field in fields %}
+                                    <th>{% column_header field object %}</th>
                                 {% endfor %}
                                 <th>Actions</th>
                             {% endfor %}
                         </tr>
                         {% for object in object_list %}
                             <tr>
-                                {% for field in object.get_fields %}
-                                    <td>{% value_to_string field object %}</td>
+                                {% if fields|length == 0 %}
+                                    {% for field in object.get_fields %}
+                                        <td>{% value_to_string field object %}</td>
+                                    {% endfor %}
+                                {% endif %}
+                                {% for field in fields %}
+                                    {% if field == object.link %}
+                                        <td><a href="show/{{ object.id }}">{% column_content field object %}</a></td>
+                                    {% else %}
+                                        <td>{% column_content field object %}</td>
+                                    {% endif %}
                                 {% endfor %}
                                 <td><a class="btn btn-sm btn-info" href="edit/{{ object.id }}/">Edit</a> <a class="btn btn-danger btn-sm" href="delete/{{ object.id }}/">Delete</a></td>
                             </tr>

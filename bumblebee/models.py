@@ -19,4 +19,10 @@ class ModelNameMixin(object):
 	def get_context_data(self, **kwargs):
 		context = super(ModelNameMixin, self).get_context_data(**kwargs)
 		context['modelname'] = self.model._meta.verbose_name.title()
+		try:
+			fields = self.fields
+
+			context['fields'] = fields
+		except:
+			context['fields'] = [_.name for _ in self.model._meta.fields]
 		return context

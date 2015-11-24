@@ -33,6 +33,25 @@ def value_to_string(field, object):
 		return getattr(object, field.name)
 	return field.value_to_string(object)
 
+@register.simple_tag
+def column_content(field, object):
+	column = getattr(object, field)
+	try:
+		return column()
+	except:
+		return column
+
+@register.simple_tag
+def column_header(field, object):
+	column = getattr(object, field)
+	try:
+		return object.alias[field]
+	except:
+		pass
+	try:
+		return column.verbose_name
+	except:
+		return field
 
 @register.filter(name='is_boolean_field')
 def is_boolean_field(field):
