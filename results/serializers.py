@@ -121,10 +121,32 @@ class StepCellSerializer(serializers.ModelSerializer):
 		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
 
 
+class TransposedListSerializer(serializers.ListSerializer):
+	def to_representation(self, data):
+		base = super(TransposedListSerializer, self).to_representation(data)
+
+		try:
+			request = self.child.context['request']
+		except:
+			raise ValueError('No request context available.')
+
+		if 'transpose' not in request.query_params:
+			return base
+
+		retval = dict()
+		for key in self.child.Meta.fields:
+			tlist = []
+			for item in base:
+				tlist.append(item[key])
+			retval[key] = tuple(tlist)
+		return [retval]
+
+
 class StepEnsembleSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = StepEnsemble
 		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
+		list_serializer_class = TransposedListSerializer
 
 	mdstep = None
 
