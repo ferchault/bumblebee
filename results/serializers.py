@@ -153,7 +153,6 @@ class StepEnsembleSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = StepEnsemble
 		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete] + ['time', ])
-		#fields = ('mdstep', 'time', 'temperature', 'pressure')
 		list_serializer_class = TransposedListSerializer
 
 

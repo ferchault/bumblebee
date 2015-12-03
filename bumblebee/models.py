@@ -1,5 +1,6 @@
 # django modules
 from django.db import models
+from rest_framework import metadata,serializers
 
 class ExplainableMixin(object):
 	def get_fields(self):
@@ -26,3 +27,13 @@ class ModelNameMixin(object):
 		except:
 			context['fields'] = [_.name for _ in self.model._meta.fields]
 		return context
+
+class CondensedMetadata(metadata.SimpleMetadata):
+	"""
+	Don't include related field choices for `OPTIONS` requests.
+	"""
+	def get_field_info(self, field):
+		base = super(CondensedMetadata, self).get_field_info(field)
+		if type(field) == serializers.PrimaryKeyRelatedField:
+			base['choices'] = 'Related field choices not listed.'
+		return base

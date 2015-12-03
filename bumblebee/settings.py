@@ -106,5 +106,6 @@ STATICFILES_DIRS = (
 )
 
 REST_FRAMEWORK = {
-	'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',)
+	'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',),
+	'DEFAULT_METADATA_CLASS': 'bumblebee.models.CondensedMetadata'
 }
