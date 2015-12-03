@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from results.models import *
 from rest_framework import serializers
 from rest_framework_bulk import (
@@ -133,8 +135,11 @@ class TransposedListSerializer(serializers.ListSerializer):
 		if 'transpose' not in request.query_params:
 			return base
 
-		retval = dict()
-		for key in self.child.Meta.fields:
+		if len(base) == 0:
+			return []
+
+		retval = OrderedDict()
+		for key in base[0].iterkeys():
 			tlist = []
 			for item in base:
 				tlist.append(item[key])
@@ -143,27 +148,35 @@ class TransposedListSerializer(serializers.ListSerializer):
 
 
 class StepEnsembleSerializer(serializers.ModelSerializer):
+	time = serializers.SerializerMethodField('annotate_time')
+
 	class Meta:
 		model = StepEnsemble
-		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
+		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete] + ['time', ])
+		#fields = ('mdstep', 'time', 'temperature', 'pressure')
 		list_serializer_class = TransposedListSerializer
 
-	mdstep = None
 
-	def __init__(self, *args, **kwargs):
-		if not hasattr(self.Meta, 'fieldlist'):
-			self.Meta.fieldlist = self.Meta.fields[:]
+	def annotate_time(self, instance):
 		try:
-			request = kwargs['context']['request']
-			selected_fields = request.query_params['fields'].split(',')
+			return instance.mdstep.steptime
 		except:
-			selected_fields = []
+			return None
 
-		if len(selected_fields) == 0:
-			self.Meta.fields = self.Meta.fieldlist
-		else:
-			self.Meta.fields = tuple([_ for _ in self.Meta.fieldlist if _ in selected_fields])
-		super(StepEnsembleSerializer, self).__init__(self, *args, **kwargs)
+	def to_representation(self, instance):
+		base = super(StepEnsembleSerializer, self).to_representation(instance)
+
+		try:
+			request = self.context['request']
+			selected_fields = request.query_params['fields'].split(',')
+			newbase = OrderedDict()
+			if len(selected_fields) != 0:
+				for key in selected_fields:
+					newbase[key] = base[key]
+				base = newbase
+		except:
+			pass
+		return base
 
 
 class StepContributionsQMSerializer(serializers.ModelSerializer):
