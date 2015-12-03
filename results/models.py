@@ -18,6 +18,9 @@ class System(models.Model, ExplainableMixin):
 	alias = {'bucket_count': 'Bucket count', 'name': 'System'}
 	link = 'name'
 
+	def __str__(self):
+		return self.name
+
 
 class SystemForm(ModelForm):
 	class Meta:
@@ -37,10 +40,19 @@ class Bucket(models.Model, ExplainableMixin):
 			self.updated = timezone.now()
 		return super(Bucket, self).save(*args, **kwargs)
 
+	link = 'name'
+	alias = {'name': 'Bucket'}
+
+	def __str__(self):
+		return self.name
+
 
 class Series(models.Model, ExplainableMixin):
 	name = models.CharField(max_length=45)
 	bucket = models.ForeignKey(Bucket)
+
+	link = 'name'
+	alias = {'name': 'Series'}
 
 
 class SeriesAttributes(models.Model, ExplainableMixin):

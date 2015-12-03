@@ -1,0 +1,42 @@
+{% extends "layout.html" %}
+{% block title %}Detail for <i>{{ system.name }}</i>{% endblock %}
+{% block subtitle %}Show Entries{% endblock %}
+
+{% load results_extras %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-6">
+            <div class="info-box">
+            <span class="info-box-icon bg-aqua"><i class="fa fa-reorder"></i></span>
+
+            <div class="info-box-content">
+              <span class="info-box-text">Molecular Dynamic Runs</span>
+              <span class="info-box-number">{{ series.mdrun_set.count }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+            <div class="info-box">
+            <span class="info-box-icon bg-aqua"><i class="fa fa-minus"></i></span>
+
+            <div class="info-box-content">
+              <span class="info-box-text">Single Point Calculations</span>
+              <span class="info-box-number">{{ series.singlepoint_set.count }}</span>
+            </div>
+          </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div id="tester" style="width:600px;height:250px;"></div>
+            <script language="JavaScript">
+                TESTER = document.getElementById('tester');
+	Plotly.plot( TESTER, [{
+	x: [1, 2, 3, 4, 5],
+	y: [1, 2, 4, 8, 16] }], {
+	margin: { t: 0 } } );
+            </script>
+        </div>
+    </div>
+{% endblock %}

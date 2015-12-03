@@ -1,6 +1,6 @@
 # django imports
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.template import RequestContext, loader
 from django.views.generic import ListView, CreateView
 from django.core.urlresolvers import reverse_lazy
@@ -11,6 +11,7 @@ from results.models import *
 from bumblebee.models import *
 
 # rest API imports
+import django_filters
 from rest_framework import viewsets
 from results.serializers import *
 from rest_framework import filters
@@ -29,6 +30,63 @@ def index(request):
 		'systems': systems,
 	})
 	return render(request, 'results/index.html', context)
+
+def show_system(request, pk):
+	try:
+		system = System.objects.get(pk=pk)
+	except:
+		raise Http404('System does not exist.')
+	context = RequestContext(request, {
+		'object_list': system.bucket_set.all(),
+		'system': system,
+		'fields': ('name', 'comment', 'updated', 'system'),
+	})
+	return render(request, 'results/showsystem.html', context)
+
+def show_bucket(request, system, bucket):
+	try:
+		system = System.objects.get(pk=system)
+		bucket = Bucket.objects.get(pk=bucket)
+		assert(bucket.system_id == system.id)
+	except:
+		raise Http404('System or bucket not found.')
+	context = RequestContext(request, {
+		'object_list': bucket.series_set.all(),
+		'system': system,
+		'bucket': bucket,
+		'fields': ('name', ),
+	})
+	return render(request, 'results/showbucket.html', context)
+
+def show_series(request, system, bucket, series):
+	try:
+		system = System.objects.get(pk=system)
+		bucket = Bucket.objects.get(pk=bucket)
+		series = Series.objects.get(pk=series)
+		assert(bucket.system_id == system.id)
+		assert(series.bucket_id == bucket.id)
+	except:
+		raise Http404('System, bucket or series not found.')
+	context = RequestContext(request, {
+		'system': system,
+		'bucket': bucket,
+		'series': series,
+	})
+	return render(request, 'results/showseries.html', context)
+
+
+class LimitUnfilteredQueriesMixin(viewsets.ModelViewSet):
+	def get_queryset(self):
+		valid_filters = set(self.filter_fields)
+		filters_got = set(self.request.query_params.keys())
+
+		if len(filters_got.intersection(valid_filters)) == 0:
+			return self.queryset[:10]
+		else:
+			return self.queryset
+
+	def get_serializer_context(self):
+		return {'request': self.request}
 
 
 class SystemListing(ModelNameMixin, ListView):
@@ -52,154 +110,154 @@ class SystemViewSet(viewsets.ModelViewSet):
 	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete])
 
 
-class BucketViewSet(viewsets.ModelViewSet):
+class BucketViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
 	serializer_class = BucketSerializer
 	queryset = Bucket.objects.all()
 	filter_backends = (filters.DjangoFilterBackend,)
 	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete])
 
 
-class SeriesViewSet(viewsets.ModelViewSet):
+class SeriesViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
 	queryset = Series.objects.all().order_by('name')
 	serializer_class = SeriesSerializer
 	filter_backends = (filters.DjangoFilterBackend,)
 	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete])
 
 
-class SeriesAttributesViewSet(viewsets.ModelViewSet):
+class SeriesAttributesViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
 	queryset = SeriesAttributes.objects.all()
 	serializer_class = SeriesAttributesSerializer
 	filter_backends = (filters.DjangoFilterBackend,)
 	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete])
 
 
-class SinglePointViewSet(viewsets.ModelViewSet):
+class SinglePointViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
 	queryset = SinglePoint.objects.all()
 	serializer_class = SinglePointSerializer
 	filter_backends = (filters.DjangoFilterBackend,)
 	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete])
 
 
-class SinglePointOuterViewSet(viewsets.ModelViewSet):
+class SinglePointOuterViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
 	queryset = SinglePointOuter.objects.all()
 	serializer_class = SinglePointOuterSerializer
 	filter_backends = (filters.DjangoFilterBackend,)
 	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete])
 
 
-class SinglePointAttributesViewSet(viewsets.ModelViewSet):
+class SinglePointAttributesViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
 	queryset = SinglePointAttributes.objects.all()
 	serializer_class = SinglePointAttributesSerializer
 	filter_backends = (filters.DjangoFilterBackend,)
 	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete])
 
 
-class MDRunViewSet(viewsets.ModelViewSet):
+class MDRunViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
 	queryset = MDRun.objects.all()
 	serializer_class = MDRunSerializer
 	filter_backends = (filters.DjangoFilterBackend,)
 	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete])
 
 
-class MDStepViewSet(viewsets.ModelViewSet):
+class MDStepViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
 	queryset = MDStep.objects.all()
 	serializer_class = MDStepSerializer
 	filter_backends = (filters.DjangoFilterBackend,)
 	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete])
 
 
-class AtomViewSet(viewsets.ModelViewSet):
+class AtomViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
 	queryset = Atom.objects.all()
 	serializer_class = AtomSerializer
 	filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter)
 	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete])
 
 
-class CoordinateViewSet(BulkModelViewSet):
+class CoordinateViewSet(LimitUnfilteredQueriesMixin, BulkModelViewSet):
 	queryset = Coordinate.objects.all()
 	serializer_class = CoordinateSerializer
 	filter_backends = (filters.DjangoFilterBackend,)
 	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete])
 
 
-class CoordinateWrappedViewSet(viewsets.ModelViewSet):
+class CoordinateWrappedViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
 	queryset = CoordinateWrapped.objects.all()
 	serializer_class = CoordinateWrappedSerializer
 	filter_backends = (filters.DjangoFilterBackend,)
 	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete])
 
 
-class HirshfeldChargeViewSet(viewsets.ModelViewSet):
+class HirshfeldChargeViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
 	queryset = HirshfeldCharge.objects.all()
 	serializer_class = HirshfeldChargeSerializer
 	filter_backends = (filters.DjangoFilterBackend,)
 	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete])
 
 
-class ScaledCoordinateViewSet(viewsets.ModelViewSet):
+class ScaledCoordinateViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
 	queryset = ScaledCoordinate.objects.all()
 	serializer_class = ScaledCoordinateSerializer
 	filter_backends = (filters.DjangoFilterBackend,)
 	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete])
 
 
-class ScaledCoordinateWrappedViewSet(viewsets.ModelViewSet):
+class ScaledCoordinateWrappedViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
 	queryset = ScaledCoordinateWrapped.objects.all()
 	serializer_class = ScaledCoordinateWrappedSerializer
 	filter_backends = (filters.DjangoFilterBackend,)
 	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete])
 
 
-class MullikenChargeViewSet(BulkModelViewSet):
+class MullikenChargeViewSet(LimitUnfilteredQueriesMixin, BulkModelViewSet):
 	queryset = MullikenCharge.objects.all()
 	serializer_class = MullikenChargeSerializer
 	filter_backends = (filters.DjangoFilterBackend,)
 	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete])
 
 
-class MDRunSettingsViewSet(viewsets.ModelViewSet):
+class MDRunSettingsViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
 	queryset = MDRunSettings.objects.all()
 	serializer_class = MDRunSettingsSerializer
 	filter_backends = (filters.DjangoFilterBackend,)
 	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete])
 
 
-class MDRunAttributesViewSet(viewsets.ModelViewSet):
+class MDRunAttributesViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
 	queryset = MDRunAttributes.objects.all()
 	serializer_class = MDRunAttributesSerializer
 	filter_backends = (filters.DjangoFilterBackend,)
 	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete])
 
 
-class StepCellViewSet(viewsets.ModelViewSet):
+class StepCellViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
 	queryset = StepCell.objects.all()
 	serializer_class = StepCellSerializer
 	filter_backends = (filters.DjangoFilterBackend,)
 	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete])
 
 
-class StepEnsembleViewSet(viewsets.ModelViewSet):
+class StepEnsembleViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
 	queryset = StepEnsemble.objects.all()
 	serializer_class = StepEnsembleSerializer
 	filter_backends = (filters.DjangoFilterBackend,)
 	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete])
 
 
-class StepContributionsQMViewSet(viewsets.ModelViewSet):
+class StepContributionsQMViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
 	queryset = StepContributionsQM.objects.all()
 	serializer_class = StepContributionsQMSerializer
 	filter_backends = (filters.DjangoFilterBackend,)
 	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete])
 
 
-class StepEnergyViewSet(viewsets.ModelViewSet):
+class StepEnergyViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
 	queryset = StepEnergy.objects.all()
 	serializer_class = StepEnergySerializer
 	filter_backends = (filters.DjangoFilterBackend,)
 	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete])
 
 
-class StepMetaQMViewSet(viewsets.ModelViewSet):
+class StepMetaQMViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
 	queryset = StepMetaQM.objects.all()
 	serializer_class = StepMetaQMSerializer
 	filter_backends = (filters.DjangoFilterBackend,)

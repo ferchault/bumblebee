@@ -1,9 +1,9 @@
 from results.models import *
 from rest_framework import serializers
 from rest_framework_bulk import (
-    BulkListSerializer,
-    BulkSerializerMixin,
-    ListBulkCreateUpdateDestroyAPIView,
+	BulkListSerializer,
+	BulkSerializerMixin,
+	ListBulkCreateUpdateDestroyAPIView,
 )
 
 
@@ -126,11 +126,29 @@ class StepEnsembleSerializer(serializers.ModelSerializer):
 		model = StepEnsemble
 		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
 
+	mdstep = None
+
+	def __init__(self, *args, **kwargs):
+		if not hasattr(self.Meta, 'fieldlist'):
+			self.Meta.fieldlist = self.Meta.fields[:]
+		try:
+			request = kwargs['context']['request']
+			selected_fields = request.query_params['fields'].split(',')
+		except:
+			selected_fields = []
+
+		if len(selected_fields) == 0:
+			self.Meta.fields = self.Meta.fieldlist
+		else:
+			self.Meta.fields = tuple([_ for _ in self.Meta.fieldlist if _ in selected_fields])
+		super(StepEnsembleSerializer, self).__init__(self, *args, **kwargs)
+
 
 class StepContributionsQMSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = StepContributionsQM
 		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
+
 
 
 class StepEnergySerializer(serializers.ModelSerializer):

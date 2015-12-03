@@ -36,5 +36,8 @@ urlpatterns = patterns('',
 	url(r'^$', views.index, name='index'),
 	url(r'^system/$', views.SystemListing.as_view(), name='results-system-list'),
 	url(r'^system/add$', views.SystemCreate.as_view(), name='results-system-add'),
+	url(r'^system/show/(?P<pk>\d+)/$', views.show_system, name='results-system-show'),
+	url(r'^system/show/(?P<system>\d+)/(?P<bucket>\d+)/$', views.show_bucket, name='results-bucket-show'),
+	url(r'^system/show/(?P<system>\d+)/(?P<bucket>\d+)/(?P<series>\d+)/$', views.show_series, name='results-series-show'),
 	url(r'^api/', include(router.urls)),
 )
