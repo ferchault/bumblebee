@@ -240,7 +240,7 @@ class StepEnsembleViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
 	queryset = StepEnsemble.objects.all()
 	serializer_class = StepEnsembleSerializer
 	filter_backends = (filters.DjangoFilterBackend,)
-	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete])
+	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete] + ['mdstep__mdrun'])
 
 
 class StepContributionsQMViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
