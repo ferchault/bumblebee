@@ -77,7 +77,7 @@
                     target: target,
                     success: function (data) {
                         if (data[0] != undefined) {
-                            index = this.index
+                            index = mdruns[this.index]
                             fields = $(this.target).attr('data-fields').split(',')
                             xydata[index] = [data[0][fields[0]], data[0][fields[1]]]
                             datapoints += xydata[index][0].length
