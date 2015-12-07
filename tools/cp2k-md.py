@@ -11,12 +11,15 @@ parser.add_argument('bucket', help='Bucket to save the data to.')
 parser.add_argument('series', help='Series to append to.')
 parser.add_argument('basepath', help='Path to read the data from.')
 parser.add_argument('baseurl', help='Server URL of the API listing.')
+parser.add_argument('--httpuser', help='Username for HTTP Basic Auth.')
+parser.add_argument('--httppass', help='Password for HTTP Basic Auth.')
 
 
 class BumblebeeApi(object):
-	def __init__(self, baseurl):
+	def __init__(self, baseurl, auth=None):
 		try:
-			self._urls = r.get(baseurl).json()
+			self._auth = auth
+			self._urls = r.get(baseurl, auth=self._auth).json()
 		except:
 			raise ValueError('Unable to connect to server.')
 
@@ -24,7 +27,7 @@ class BumblebeeApi(object):
 		if objecttype not in self._urls:
 			raise ValueError('Object type not known on server side.')
 
-		result = r.get(self._urls[objecttype], params=kwargs)
+		result = r.get(self._urls[objecttype], auth=self._auth, params=kwargs)
 		try:
 			result = result.json()
 		except:
@@ -49,7 +52,7 @@ class BumblebeeApi(object):
 		if objecttype not in self._urls:
 			raise ValueError('Object type not known on server side.')
 
-		result = r.post(self._urls[objecttype], data=kwargs)
+		result = r.post(self._urls[objecttype], auth=self._auth, data=kwargs)
 		if result.status_code != 201:
 			raise ValueError('Unable to add new entry because of the following server answer: ' + str(result.json()))
 		return result.json()
@@ -58,7 +61,8 @@ class BumblebeeApi(object):
 		if objecttype not in self._urls:
 			raise ValueError('Object type not known on server side.')
 
-		result = r.post(self._urls[objecttype], json=data)
+		result = r.post(self._urls[objecttype], auth=self._auth, json=data)
+		result = r.post(self._urls[objecttype], auth=self._auth, json=data)
 		if result.status_code != 201:
 			raise ValueError('Unable to add new entry because of the following server answer: ' + str(result.json()))
 		return result.json()
@@ -278,8 +282,12 @@ class CP2KParser(object):
 if __name__ == '__main__':
 	args = parser.parse_args()
 	baseurl, system, bucket, bucket_name, series, basepath = args.baseurl, args.system, args.token, args.bucket, args.series, args.basepath
+	if args.httpuser != None:
+		auth = args.httpuser, args.httppass
+	else:
+		auth = None
 
-	bb = BumblebeeApi(baseurl)
+	bb = BumblebeeApi(baseurl, auth=auth)
 
 	# get meta data
 	server_system = bb.create_if_missing('system', name=system)
