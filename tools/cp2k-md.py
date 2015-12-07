@@ -3,6 +3,7 @@
 import argparse
 import requests as r
 import MDAnalysis as mda
+import os
 
 parser = argparse.ArgumentParser()
 parser.add_argument('system', help='Name of the physical system.')
@@ -281,7 +282,13 @@ class CP2KParser(object):
 
 if __name__ == '__main__':
 	args = parser.parse_args()
-	baseurl, system, bucket, bucket_name, series, basepath = args.baseurl, args.system, args.token, args.bucket, args.series, args.basepath
+	baseurl, system, bucket, bucket_name, series = args.baseurl, args.system, args.token, args.bucket, args.series
+
+	# check basepath
+	basepath = args.basepath
+	if basepath[-1] != os.path.sep:
+		basepath += os.path.sep
+
 	if args.httpuser != None:
 		auth = args.httpuser, args.httppass
 	else:
