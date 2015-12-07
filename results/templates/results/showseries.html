@@ -27,85 +27,109 @@
           </div>
         </div>
     </div>
+    <script language="JavaScript">
+        function _finaliseGraph(target) {
+            return function(data, textStatus, jqXHR) {
+                ival = parseFloat($(target).find('.canvas .progress-bar').attr('aria-valuenow'))
+                $(target).find('.canvas .progress-text').html(ival + '/{{ series.mdrun_set.all|length }} parts downloaded: ' + xdata.length + ' data points')
+                $(target).find('.canvas .progress-bar').attr('aria-valuenow', ival + 1)
+                $(target).find('.canvas  .progress-bar').attr('style', 'width: ' + ival * 100 / {{ series.mdrun_set.all|length }} +'%')
+                if (ival == {{ series.mdrun_set.all|length }}) {
+                    $(target).find('.canvas .progress').remove()
+                    $(target).find('.canvas .progress-text').remove()
+                    Plotly.plot($(target).find('.canvas').attr('id'), [{x: xdata, y: ydata}], {
+                        margin: {t: 0,},
+                        xaxis: {
+                            title: $(target).attr('data-xlabel'),
+                            showline: true
+                        },
+                        yaxis: {
+                            title: $(target).attr('data-ylabel'),
+                            showline: true
+                        }
+                    });
+                }
+            }
+        }
+        function updateGraph(target) {
+            mdruns = [{% for mdrun in series.mdrun_set.all %}{{ mdrun.id }},{% endfor %}]
+
+            xdata = []
+            ydata = []
+            for (i = 0; i < mdruns.length; i++) {
+                $.when($.ajax({
+                    url: '/results/api/' + $(target).attr('data-endpoint') + '/?fields=' + $(target).attr('data-fields') + '&mdstep__mdrun=' + mdruns[i] + '&transpose',
+                    async: true,
+                    target: target,
+                    success: function (data) {
+                        if (data[0] != undefined) {
+                            fields = $(this.target).attr('data-fields').split(',')
+                            xdata = xdata.concat(data[0][fields[0]])
+                            ydata = ydata.concat(data[0][fields[1]])
+                        }
+                    }
+                })).then(_finaliseGraph(target))
+            }
+        }
+        $(function(){
+            $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                var target = $(e.target).attr("href")
+                if ($(target).find('.progress') != undefined) {
+                    updateGraph(target)
+                }
+            })
+            updateGraph($('.nav-tabs > li.active > a[data-toggle="tab"]').attr("href"))
+        })
+    </script>
     <div class="row">
         <div class="col-md-6">
             <div class="nav-tabs-custom">
             <ul class="nav nav-tabs pull-right">
               <li class="active"><a href="#tab_1-1" data-toggle="tab">Temperature</a></li>
               <li><a href="#tab_2-2" data-toggle="tab">Pressure</a></li>
+                <li><a href="#tab_3-3" data-toggle="tab">Volume</a></li>
+                <li><a href="#tab_4-4" data-toggle="tab">Conserved Q</a></li>
               <li class="pull-left header"><i class="fa fa-th"></i>Ensemble Properties</li>
             </ul>
             <div class="tab-content">
-                <div class="tab-pane active" id="tab_1-1" data-fields="time,temperature" data-xlabel="Time [fs]" data-ylabel="Temperature [K]" >
+                <div class="tab-pane active" id="tab_1-1" data-endpoint="stepensemble" data-fields="time,temperature" data-xlabel="Time [fs]" data-ylabel="Temperature [K]" >
                     <div id="tab1canvas" class="canvas" style="width:100%;height:350px;">
                         <div class="progress">
                         <div class="progress-bar progress-bar-aqua" role="progressbar" aria-valuenow="1" aria-valuemin="0" aria-valuemax="{{ series.mdrun_set.all|length }}" style="width: 0%"></div>
                             <br />
                         </div>
-
-                        <div  class="progress-text">something</div>
+                        <div  class="progress-text">loading...</div>
                     </div>
                 </div>
-            <script language="JavaScript">
-                function _finaliseGraph(target) {
-                    return function(data, textStatus, jqXHR) {
-                        ival = parseFloat($(target).find('.canvas .progress-bar').attr('aria-valuenow'))
-                        $(target).find('.canvas .progress-text').html(ival + '/{{ series.mdrun_set.all|length }} parts downloaded: ' + xdata.length + ' data points')
-                        $(target).find('.canvas .progress-bar').attr('aria-valuenow', ival + 1)
-                        $(target).find('.canvas  .progress-bar').attr('style', 'width: ' + ival * 100 / {{ series.mdrun_set.all|length }} +'%')
-                        if (ival == {{ series.mdrun_set.all|length }}) {
-                            $(target).find('.canvas .progress').remove()
-                            $(target).find('.canvas .progress-text').remove()
-                            Plotly.plot($(target).find('.canvas').attr('id'), [{x: xdata, y: ydata}], {
-                                margin: {t: 0,},
-                                xaxis: {
-                                    title: 'Time [fs]',
-                                    showline: true
-                                },
-                                yaxis: {
-                                    title: 'Temperature [K]',
-                                    showline: true
-                                }
-                            });
-                        }
-                    }
-                }
-                function updateGraph(target) {
-                    mdruns = [{% for mdrun in series.mdrun_set.all %}{{ mdrun.id }},{% endfor %}]
-
-                    xdata = []
-                    ydata = []
-                    for (i = 0; i < mdruns.length; i++) {
-                        $.when($.ajax({
-                            url: '/results/api/stepensemble/?fields=' + $(target).attr('data-fields') + '&mdstep__mdrun=' + mdruns[i] + '&transpose',
-                            async: true,
-                            success: function (data) {
-                                if (data[0] != undefined) {
-                                    xdata = xdata.concat(data[0]['time'])
-                                    ydata = ydata.concat(data[0]['temperature'])
-                                }
-                            }
-                        })).then(_finaliseGraph(target))
-                    }
-                }
-                $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-                    var target = $(e.target).attr("href")
-                    if ($(target).find('.progress') != undefined) {
-                        updateGraph(target)
-                    }
-                })
-                $(function(){
-                    updateGraph($('.nav-tabs > li.active > a[data-toggle="tab"]').attr("href"))
-                })
-            </script>
-              <!-- /.tab-pane -->
-              <div class="tab-pane" id="tab_2-2">
-              </div>
-              <!-- /.tab-pane -->
+                <div class="tab-pane" id="tab_2-2" data-endpoint="stepensemble" data-fields="time,pressure" data-xlabel="Time [fs]" data-ylabel="Pressure [bar]" >
+                    <div id="tab2canvas" class="canvas" style="width:100%;height:350px;">
+                        <div class="progress">
+                        <div class="progress-bar progress-bar-aqua" role="progressbar" aria-valuenow="1" aria-valuemin="0" aria-valuemax="{{ series.mdrun_set.all|length }}" style="width: 0%"></div>
+                            <br />
+                        </div>
+                        <div  class="progress-text">loading...</div>
+                    </div>
+                </div>
+                <div class="tab-pane" id="tab_3-3" data-endpoint="stepensemble" data-fields="time,volume" data-xlabel="Time [fs]" data-ylabel="Volume [A^3]" >
+                    <div id="tab3canvas" class="canvas" style="width:100%;height:350px;">
+                        <div class="progress">
+                        <div class="progress-bar progress-bar-aqua" role="progressbar" aria-valuenow="1" aria-valuemin="0" aria-valuemax="{{ series.mdrun_set.all|length }}" style="width: 0%"></div>
+                            <br />
+                        </div>
+                        <div  class="progress-text">loading...</div>
+                    </div>
+                </div>
+                <div class="tab-pane" id="tab_4-4" data-endpoint="stepensemble" data-fields="time,conserved" data-xlabel="Time [fs]" data-ylabel="Conserved Quantity [H]" >
+                    <div id="tab4canvas" class="canvas" style="width:100%;height:350px;">
+                        <div class="progress">
+                        <div class="progress-bar progress-bar-aqua" role="progressbar" aria-valuenow="1" aria-valuemin="0" aria-valuemax="{{ series.mdrun_set.all|length }}" style="width: 0%"></div>
+                            <br />
+                        </div>
+                        <div  class="progress-text">loading...</div>
+                    </div>
+                </div>
             </div>
-            <!-- /.tab-content -->
           </div>
-
         </div>
     </div>
 {% endblock %}
