@@ -14,6 +14,11 @@ parser.add_argument('basepath', help='Path to read the data from.')
 parser.add_argument('baseurl', help='Server URL of the API listing.')
 parser.add_argument('--httpuser', help='Username for HTTP Basic Auth.')
 parser.add_argument('--httppass', help='Password for HTTP Basic Auth.')
+parser.add_argument('--logfile', help='CP2K log file name in basepath.', default='run.log')
+parser.add_argument('--restartfile', help='CP2K restart file name in basepath.', default='run.base')
+parser.add_argument('--inputfile', help='CP2K input file name.', default='run.inp')
+parser.add_argument('--coordfile', help='DCD file with coordinates.', default='traj/pos-pos-1.dcd')
+parser.add_argument('--xyzfile', help='XYZ file with the atom list.', default='input/input.xyz')
 
 
 class BumblebeeApi(object):
@@ -283,6 +288,7 @@ class CP2KParser(object):
 if __name__ == '__main__':
 	args = parser.parse_args()
 	baseurl, system, bucket, bucket_name, series = args.baseurl, args.system, args.token, args.bucket, args.series
+	logfile, restartfile, inputfile, coordfile, xyzfile = args.logfile, args.restartfile, args.inputfile, args.coordfile, args.xyzfile
 
 	# check basepath
 	basepath = args.basepath
@@ -313,7 +319,7 @@ if __name__ == '__main__':
 	print 'Loading data into %s.%s.%s.%d' % (server_system['name'], server_bucket['token'], server_series['name'], server_mdrun['part'])
 
 	# load CP2K data
-	cp = CP2KParser(basepath + 'run.log', basepath + 'run.inp', basepath + 'run.base', basepath + '/traj/pos-pos-1.dcd', basepath + '/../input/input.xyz')
+	cp = CP2KParser(os.path.join(basepath, logfile), os.path.join(basepath, inputfile), os.path.join(basepath, restartfile), os.path.join(basepath, coordfile), os.path.join(basepath, xyzfile))
 	settings = dict()
 	for setting in 'temperature pressure multiplicity timestep'.split():
 		try:
