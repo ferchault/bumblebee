@@ -54,6 +54,8 @@ class Series(models.Model, ExplainableMixin):
 	link = 'name'
 	alias = {'name': 'Series'}
 
+	def __str__(self):
+		return self.name
 
 class SeriesAttributes(models.Model, ExplainableMixin):
 	key = models.CharField(max_length=45)
@@ -84,6 +86,35 @@ class MDRun(models.Model, ExplainableMixin):
 	part = models.IntegerField()
 	type = models.CharField(max_length=20, blank=True)
 	series = models.ForeignKey(Series)
+
+	def start_time(self):
+		mdsteps =  self.mdstep_set.filter(masked=False).order_by('steptime')[:1]
+		if len(mdsteps) == 0:
+			return None
+		else:
+			return mdsteps[0].steptime
+
+	def stop_time(self):
+		mdsteps =  self.mdstep_set.filter(masked=False).order_by('-steptime')[:1]
+		if len(mdsteps) == 0:
+			return None
+		else:
+			return mdsteps[0].steptime
+
+	def duration(self):
+		try:
+			return self.stop_time()-self.start_time()
+		except:
+			return None
+
+	def overlap_before(self):
+		return 0
+
+	def overlap_after(self):
+		return 0
+
+	def detailed(self):
+		return '%s.%s.%s.%d' % (self.series.bucket.system, self.series.bucket, self.series, self.part)
 
 
 class MDStep(models.Model, ExplainableMixin):

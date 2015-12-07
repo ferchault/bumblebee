@@ -11,7 +11,7 @@
             <span class="info-box-icon bg-aqua"><i class="fa fa-reorder"></i></span>
 
             <div class="info-box-content">
-              <span class="info-box-text">Molecular Dynamic Runs</span>
+              <span class="info-box-text">Molecular Dynamic Runs</a></span>
               <span class="info-box-number">{{ series.mdrun_set.count }}</span>
             </div>
           </div>
@@ -147,6 +147,51 @@
                 </div>
             </div>
           </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="box box-default collapsed-box">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Manage Runs</h3>
+
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i></button>
+                    </div>
+                </div>
+                <div class="box-body table-responsive">
+                {% if runs|length > 0 %}
+                    <table class="table table-hover">
+                        <tr>
+                            <th>ID</th><th>Time</th><th>Duration</th><th>Overlap</th><th>Actions</th>
+                        </tr>
+                        {% for run in runs %}
+                            <tr>
+                                <td>{{ run.id }}</td><td>
+                                {% if run.start_time != None %}
+                                    {{ run.start_time }} fs - {{ run.stop_time }} fs
+                                {% else %}
+                                    <span class="label label-warning">Empty</span>
+                                {% endif %}
+                                </td><td>
+                                {% if run.duration != None %}
+                                    {{ run.duration }} fs
+                                {% endif %}
+                                {% if run.duration == 0 %}
+                                    <span class="label label-warning">Single Point</span>
+                                {% endif %}
+                            </td><td>{{ run.overlap_before }} fs / {{ run.overlap_after }}</td>
+                            <td>
+                                <a class="btn btn-danger btn-xs" href="{% url 'results-mdrun-delete' run.id %}">Delete</a>
+                            </td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                    {% else %}
+                        <p>No runs.</p>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
 {% endblock %}

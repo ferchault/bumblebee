@@ -2,8 +2,8 @@
 from django.shortcuts import render
 from django.http import HttpResponse, Http404
 from django.template import RequestContext, loader
-from django.views.generic import ListView, CreateView
-from django.core.urlresolvers import reverse_lazy
+from django.views.generic import ListView, CreateView, DeleteView
+from django.core.urlresolvers import reverse_lazy, reverse
 from django.db.models import Count
 
 # app-specific imports
@@ -63,6 +63,7 @@ def show_series(request, system, bucket, series):
 		system = System.objects.get(pk=system)
 		bucket = Bucket.objects.get(pk=bucket)
 		series = Series.objects.get(pk=series)
+		runs = series.mdrun_set.order_by('part')
 		assert(bucket.system_id == system.id)
 		assert(series.bucket_id == bucket.id)
 	except:
@@ -71,6 +72,7 @@ def show_series(request, system, bucket, series):
 		'system': system,
 		'bucket': bucket,
 		'series': series,
+		'runs': runs,
 	})
 	return render(request, 'results/showseries.html', context)
 
@@ -157,6 +159,17 @@ class MDRunViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
 	serializer_class = MDRunSerializer
 	filter_backends = (filters.DjangoFilterBackend,)
 	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete])
+
+
+class MDRunDelete(ModelNameMixin, DeleteView):
+	model = MDRun
+	template_name = 'deleteview-generic.html'
+
+	def get_success_url(self):
+		seriesid = self.object.series_id
+		bucketid = self.object.series.bucket_id
+		systemid = self.object.series.bucket.system_id
+		return reverse('results-series-show', args=[systemid, bucketid, seriesid])
 
 
 class MDStepViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
