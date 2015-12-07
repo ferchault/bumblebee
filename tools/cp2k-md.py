@@ -4,15 +4,13 @@ import argparse
 import requests as r
 import MDAnalysis as mda
 
-baseurl = 'http://localhost:8000/results/api/'
-system = 'hematite-IOH3'
-bucket = 'TOKEN'
-bucket_name = 'test'
-series = 'production'
-basepath = '/Volumes/ALFA/bumblebee-test/IOHMD-A-prod-22ce9a183b38cedfca608118c1fc99f9/run-0/'
-
 parser = argparse.ArgumentParser()
+parser.add_argument('system', help='Name of the physical system.')
+parser.add_argument('token', help='Token to identify the bucket.')
 parser.add_argument('bucket', help='Bucket to save the data to.')
+parser.add_argument('series', help='Series to append to.')
+parser.add_argument('basepath', help='Path to read the data from.')
+parser.add_argument('baseurl', help='Server URL of the API listing.')
 
 
 class BumblebeeApi(object):
@@ -276,93 +274,98 @@ class CP2KParser(object):
 			return collect
 		return None
 
-bb = BumblebeeApi(baseurl)
 
-# get meta data
-server_system = bb.create_if_missing('system', name=system)
-server_bucket = bb.create_if_missing('bucket', token=bucket, name=bucket_name, system=server_system['id'])
-server_series = bb.create_if_missing('series', bucket=server_bucket['id'], name=series)
+if __name__ == '__main__':
+	args = parser.parse_args()
+	baseurl, system, bucket, bucket_name, series, basepath = args.baseurl, args.system, args.token, args.bucket, args.series, args.basepath
 
-# get MD run
-highest_part = bb.get_if_exists('mdrun', series=server_series['id'], multiple=True)
-if highest_part is None:
-	highest_part = 1
-else:
-	highest_part = max([_['part'] for _ in highest_part]) + 1
-server_mdrun = bb.create('mdrun', series=server_series['id'], part=highest_part)
+	bb = BumblebeeApi(baseurl)
 
-# notify user
-print 'Loading data into %s.%s.%s.%d' % (server_system['name'], server_bucket['token'], server_series['name'], server_mdrun['part'])
+	# get meta data
+	server_system = bb.create_if_missing('system', name=system)
+	server_bucket = bb.create_if_missing('bucket', token=bucket, name=bucket_name, system=server_system['id'])
+	server_series = bb.create_if_missing('series', bucket=server_bucket['id'], name=series)
 
-# load CP2K data
-cp = CP2KParser(basepath + 'run.log', basepath + 'run.inp', basepath + 'run.base', basepath + '/traj/pos-pos-1.dcd', basepath + '/../input/input.xyz')
-settings = dict()
-for setting in 'temperature pressure multiplicity timestep'.split():
-	try:
-		settings[setting] = float(cp.get_mdrun_desired(setting))
-	except:
-		settings[setting] = None
-server_settings = bb.create('mdrunsettings', mdrun=server_mdrun['id'], **settings)
+	# get MD run
+	highest_part = bb.get_if_exists('mdrun', series=server_series['id'], multiple=True)
+	if highest_part is None:
+		highest_part = 1
+	else:
+		highest_part = max([_['part'] for _ in highest_part]) + 1
+	server_mdrun = bb.create('mdrun', series=server_series['id'], part=highest_part)
 
-# check system definition
-server_atoms = bb.get_if_exists('atom', multiple=True, system=server_system['id'], ordering='number')
-if server_atoms is None:
-	print 'First import for this system. Creating atoms.'
-	for idx, kind in enumerate(cp.get_atom_list()):
-		server_atoms = bb.create('atom', kind=kind, number=idx+1, system=server_system['id'])
+	# notify user
+	print 'Loading data into %s.%s.%s.%d' % (server_system['name'], server_bucket['token'], server_series['name'], server_mdrun['part'])
+
+	# load CP2K data
+	cp = CP2KParser(basepath + 'run.log', basepath + 'run.inp', basepath + 'run.base', basepath + '/traj/pos-pos-1.dcd', basepath + '/../input/input.xyz')
+	settings = dict()
+	for setting in 'temperature pressure multiplicity timestep'.split():
+		try:
+			settings[setting] = float(cp.get_mdrun_desired(setting))
+		except:
+			settings[setting] = None
+	server_settings = bb.create('mdrunsettings', mdrun=server_mdrun['id'], **settings)
+
+	# check system definition
 	server_atoms = bb.get_if_exists('atom', multiple=True, system=server_system['id'], ordering='number')
+	if server_atoms is None:
+		print 'First import for this system. Creating atoms.'
+		for idx, kind in enumerate(cp.get_atom_list()):
+			server_atoms = bb.create('atom', kind=kind, number=idx+1, system=server_system['id'])
+		server_atoms = bb.get_if_exists('atom', multiple=True, system=server_system['id'], ordering='number')
 
-# import frames
-cp.skip_header()
-output_frame = 0
-while cp.find_next_frame():
-	print '\rProgress: %5.2f%%' % cp.progress(),
+	# import frames
+	cp.skip_header()
+	output_frame = 0
+	while cp.find_next_frame():
+		print '\rProgress: %5.2f%%' % cp.progress(),
 
-	# load metadata
-	stepnumber = cp.get_frame_desired('stepnumber')
-	steptime = cp.get_frame_desired('steptime')
-	server_mdstep = bb.create('mdstep', mdrun=server_mdrun['id'], stepnumber=stepnumber, steptime=steptime)
+		# load metadata
+		stepnumber = cp.get_frame_desired('stepnumber')
+		steptime = cp.get_frame_desired('steptime')
+		server_mdstep = bb.create('mdstep', mdrun=server_mdrun['id'], stepnumber=stepnumber, steptime=steptime)
 
-	dimensions = cp.get_frame_dimensions()
-	keys = 'a b c alpha beta gamma'.split()
-	server_stepcell = bb.create('stepcell', mdstep=server_mdstep['id'], **dict(zip(keys, dimensions)))
+		dimensions = cp.get_frame_dimensions()
+		keys = 'a b c alpha beta gamma'.split()
+		server_stepcell = bb.create('stepcell', mdstep=server_mdstep['id'], **dict(zip(keys, dimensions)))
 
-	keys = 'temperature pressure volume'.split()
-	data = [cp.get_frame_desired(_)[0] for _ in keys]
-	server_stepensemble = bb.create('stepensemble', mdstep=server_mdstep['id'], conserved=cp.get_frame_desired('conserved'), **dict(zip(keys, data)))
+		keys = 'temperature pressure volume'.split()
+		data = [cp.get_frame_desired(_)[0] for _ in keys]
+		server_stepensemble = bb.create('stepensemble', mdstep=server_mdstep['id'], conserved=cp.get_frame_desired('conserved'), **dict(zip(keys, data)))
 
-	keys = 'coreselfenergy corehamiltonian hartree xc hfx dispersion'.split()
-	data = [cp.get_frame_desired(_) for _ in keys]
-	server_stepcontributionsqm = bb.create('stepcontributionsqm', mdstep=server_mdstep['id'], **dict(zip(keys, data)))
+		keys = 'coreselfenergy corehamiltonian hartree xc hfx dispersion'.split()
+		data = [cp.get_frame_desired(_) for _ in keys]
+		server_stepcontributionsqm = bb.create('stepcontributionsqm', mdstep=server_mdstep['id'], **dict(zip(keys, data)))
 
-	keys = 'etot epot ekin drift'.split()
-	data = [cp.get_frame_desired(_) for _ in keys]
-	server_stepenergy = bb.create('stepenergy', mdstep=server_mdstep['id'], **dict(zip(keys, data)))
+		keys = 'etot epot ekin drift'.split()
+		data = [cp.get_frame_desired(_) for _ in keys]
+		server_stepenergy = bb.create('stepenergy', mdstep=server_mdstep['id'], **dict(zip(keys, data)))
 
-	keys = 'iasd s2 scfcycles otcycles'.split()
-	data = [cp.get_frame_desired(_) for _ in keys]
-	server_stepmetaqm = bb.create('stepmetaqm', mdstep=server_mdstep['id'], **dict(zip(keys, data)))
+		keys = 'iasd s2 scfcycles otcycles'.split()
+		data = [cp.get_frame_desired(_) for _ in keys]
+		server_stepmetaqm = bb.create('stepmetaqm', mdstep=server_mdstep['id'], **dict(zip(keys, data)))
 
-	# load coordinates
-	pos = cp.get_coordinates(output_frame)
-	assert(len(pos) == len(server_atoms))
-	objects_cache = list()
-	for atom_number, data in enumerate(zip(pos, server_atoms)):
-		coord, server_atom = data
-		x, y, z = map(float, coord)
-		obj = {'x': x, 'y': y, 'z': z, 'atom': server_atom['id'], 'mdstep': server_mdstep['id']}
-		objects_cache.append(obj)
-	#bb.create_bulk('coordinate', objects_cache)
+		# load coordinates
+		pos = cp.get_coordinates(output_frame)
+		assert(len(pos) == len(server_atoms))
+		objects_cache = list()
+		for atom_number, data in enumerate(zip(pos, server_atoms)):
+			coord, server_atom = data
+			x, y, z = map(float, coord)
+			obj = {'x': x, 'y': y, 'z': z, 'atom': server_atom['id'], 'mdstep': server_mdstep['id']}
+			objects_cache.append(obj)
+		#bb.create_bulk('coordinate', objects_cache)
 
-	# load Mulliken charges
-	charges = cp.get_frame_mulliken_charges()
-	objects_cache = list()
-	for charge, server_atom in zip(charges, server_atoms):
-		charge['atom'] = server_atom['id']
-		charge['mdstep'] = server_mdstep['id']
-		objects_cache.append(charge)
-	bb.create_bulk('mullikencharge', objects_cache)
+		# load Mulliken charges
+		charges = cp.get_frame_mulliken_charges()
+		objects_cache = list()
+		for charge, server_atom in zip(charges, server_atoms):
+			charge['atom'] = server_atom['id']
+			charge['mdstep'] = server_mdstep['id']
+			objects_cache.append(charge)
+		bb.create_bulk('mullikencharge', objects_cache)
 
-	# counter
-	output_frame += 1
-print '\nComplete'
+		# counter
+		output_frame += 1
+	print '\nComplete'
