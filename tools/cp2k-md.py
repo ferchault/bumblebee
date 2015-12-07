@@ -18,7 +18,7 @@ parser.add_argument('--logfile', help='CP2K log file name in basepath.', default
 parser.add_argument('--restartfile', help='CP2K restart file name in basepath.', default='run.base')
 parser.add_argument('--inputfile', help='CP2K input file name.', default='run.inp')
 parser.add_argument('--coordfile', help='DCD file with coordinates.', default='traj/pos-pos-1.dcd')
-parser.add_argument('--xyzfile', help='XYZ file with the atom list.', default='input/input.xyz')
+parser.add_argument('--xyzfile', help='XYZ file with the atom list.', default='../input/input.xyz')
 
 
 class BumblebeeApi(object):
@@ -78,8 +78,11 @@ class CP2KParser(object):
 	def __init__(self, logfile=None, inputfile=None, restartfile=None, coordfile=None, xyzfile=None):
 		self._logfile = open(logfile).readlines()
 		self._inputfile = [_.strip() for _ in open(inputfile).readlines()]
-		self._restartfile = open(restartfile).readlines()
-		self._coordfile = mda.coordinates.DCD.DCDReader(coordfile)
+		#self._restartfile = open(restartfile).readlines()
+		try:
+			self._coordfile = mda.coordinates.DCD.DCDReader(coordfile)
+		except:
+			self._coordfile = None
 		self._xyzfile = xyzfile
 		self._xyzfileparsed = False
 		self._pos = 0
@@ -94,7 +97,7 @@ class CP2KParser(object):
 			try:
 				self._xyzfile = open(self._xyzfile).readlines()
 			except:
-				raise ValueError('Unable to open XYZ file.')
+				raise ValueError('Unable to open XYZ file %s.' % self._xyzfile)
 
 		try:
 			noatoms = int(self._xyzfile[0].strip())
@@ -369,14 +372,15 @@ if __name__ == '__main__':
 
 		# load coordinates
 		pos = cp.get_coordinates(output_frame)
-		assert(len(pos) == len(server_atoms))
-		objects_cache = list()
-		for atom_number, data in enumerate(zip(pos, server_atoms)):
-			coord, server_atom = data
-			x, y, z = map(float, coord)
-			obj = {'x': x, 'y': y, 'z': z, 'atom': server_atom['id'], 'mdstep': server_mdstep['id']}
-			objects_cache.append(obj)
-		#bb.create_bulk('coordinate', objects_cache)
+		if pos is None:
+			assert(len(pos) == len(server_atoms))
+			objects_cache = list()
+			for atom_number, data in enumerate(zip(pos, server_atoms)):
+				coord, server_atom = data
+				x, y, z = map(float, coord)
+				obj = {'x': x, 'y': y, 'z': z, 'atom': server_atom['id'], 'mdstep': server_mdstep['id']}
+				objects_cache.append(obj)
+			bb.create_bulk('coordinate', objects_cache)
 
 		# load Mulliken charges
 		charges = cp.get_frame_mulliken_charges()
