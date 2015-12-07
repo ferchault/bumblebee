@@ -372,7 +372,7 @@ if __name__ == '__main__':
 
 		# load coordinates
 		pos = cp.get_coordinates(output_frame)
-		if pos is None:
+		if pos is not None:
 			assert(len(pos) == len(server_atoms))
 			objects_cache = list()
 			for atom_number, data in enumerate(zip(pos, server_atoms)):
@@ -384,12 +384,13 @@ if __name__ == '__main__':
 
 		# load Mulliken charges
 		charges = cp.get_frame_mulliken_charges()
-		objects_cache = list()
-		for charge, server_atom in zip(charges, server_atoms):
-			charge['atom'] = server_atom['id']
-			charge['mdstep'] = server_mdstep['id']
-			objects_cache.append(charge)
-		bb.create_bulk('mullikencharge', objects_cache)
+		if charges is not None:
+			objects_cache = list()
+			for charge, server_atom in zip(charges, server_atoms):
+				charge['atom'] = server_atom['id']
+				charge['mdstep'] = server_mdstep['id']
+				objects_cache.append(charge)
+			bb.create_bulk('mullikencharge', objects_cache)
 
 		# counter
 		output_frame += 1
