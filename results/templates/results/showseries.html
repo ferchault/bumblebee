@@ -31,12 +31,24 @@
         function _finaliseGraph(target) {
             return function(data, textStatus, jqXHR) {
                 ival = parseFloat($(target).find('.canvas .progress-bar').attr('aria-valuenow'))
-                $(target).find('.canvas .progress-text').html(ival + '/{{ series.mdrun_set.all|length }} parts downloaded: ' + xdata.length + ' data points')
+                $(target).find('.canvas .progress-text').html(ival + '/{{ series.mdrun_set.all|length }} parts downloaded: ' + datapoints + ' data points')
                 $(target).find('.canvas .progress-bar').attr('aria-valuenow', ival + 1)
                 $(target).find('.canvas  .progress-bar').attr('style', 'width: ' + ival * 100 / {{ series.mdrun_set.all|length }} +'%')
                 if (ival == {{ series.mdrun_set.all|length }}) {
                     $(target).find('.canvas .progress').remove()
                     $(target).find('.canvas .progress-text').remove()
+
+                    // build data series in correct order from asynchronous answers
+                    xdata = []
+                    ydata = []
+                    for (i = 0; i < mdruns.length; i++){
+                        if (xydata[mdruns[i]] != undefined) {
+                            xdata = xdata.concat(xydata[mdruns[i]][0])
+                            ydata = ydata.concat(xydata[mdruns[i]][1])
+                        }
+                    }
+
+                    // add plot
                     Plotly.plot($(target).find('.canvas').attr('id'), [{x: xdata, y: ydata}], {
                         margin: {t: 0,},
                         xaxis: {
@@ -54,18 +66,23 @@
         function updateGraph(target) {
             mdruns = [{% for mdrun in series.mdrun_set.all %}{{ mdrun.id }},{% endfor %}]
 
-            xdata = []
-            ydata = []
+            // fetch run data asynchronously
+            xydata = {}
+            datapoints = 0
             for (i = 0; i < mdruns.length; i++) {
                 $.when($.ajax({
                     url: '/results/api/' + $(target).attr('data-endpoint') + '/?fields=' + $(target).attr('data-fields') + '&mdstep__mdrun=' + mdruns[i] + '&transpose',
                     async: true,
+                    index: i,
                     target: target,
                     success: function (data) {
                         if (data[0] != undefined) {
+                            index = this.index
                             fields = $(this.target).attr('data-fields').split(',')
-                            xdata = xdata.concat(data[0][fields[0]])
-                            ydata = ydata.concat(data[0][fields[1]])
+                            xydata[index] = [data[0][fields[0]], data[0][fields[1]]]
+                            datapoints += xydata[index][0].length
+                            /*xdata = xdata.concat(data[0][fields[0]])
+                            ydata = ydata.concat(data[0][fields[1]])*/
                         }
                     }
                 })).then(_finaliseGraph(target))
