@@ -8,6 +8,46 @@ from rest_framework_bulk import (
 	ListBulkCreateUpdateDestroyAPIView,
 )
 
+class FilteredRepresentationMixin(serializers.ModelSerializer):
+	def to_representation(self, instance):
+		base = super(FilteredRepresentationMixin, self).to_representation(instance)
+
+		try:
+			request = self.context['request']
+			selected_fields = request.query_params['fields'].split(',')
+			newbase = OrderedDict()
+			if len(selected_fields) != 0:
+				for key in selected_fields:
+					newbase[key] = base[key]
+				base = newbase
+		except:
+			pass
+		return base
+
+
+class TransposedListSerializer(serializers.ListSerializer):
+	def to_representation(self, data):
+		base = super(TransposedListSerializer, self).to_representation(data)
+
+		try:
+			request = self.child.context['request']
+		except:
+			raise ValueError('No request context available.')
+
+		if 'transpose' not in request.query_params:
+			return base
+
+		if len(base) == 0:
+			return []
+
+		retval = OrderedDict()
+		for key in base[0].iterkeys():
+			tlist = []
+			for item in base:
+				tlist.append(item[key])
+			retval[key] = tuple(tlist)
+		return [retval]
+
 
 class SystemSerializer(serializers.ModelSerializer):
 	class Meta:
@@ -117,44 +157,13 @@ class MDRunAttributesSerializer(serializers.ModelSerializer):
 		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
 
 
-class StepCellSerializer(serializers.ModelSerializer):
-	class Meta:
-		model = StepCell
-		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
-
-
-class TransposedListSerializer(serializers.ListSerializer):
-	def to_representation(self, data):
-		base = super(TransposedListSerializer, self).to_representation(data)
-
-		try:
-			request = self.child.context['request']
-		except:
-			raise ValueError('No request context available.')
-
-		if 'transpose' not in request.query_params:
-			return base
-
-		if len(base) == 0:
-			return []
-
-		retval = OrderedDict()
-		for key in base[0].iterkeys():
-			tlist = []
-			for item in base:
-				tlist.append(item[key])
-			retval[key] = tuple(tlist)
-		return [retval]
-
-
-class StepEnsembleSerializer(serializers.ModelSerializer):
+class StepCellSerializer(FilteredRepresentationMixin, serializers.ModelSerializer):
 	time = serializers.SerializerMethodField('annotate_time')
 
 	class Meta:
-		model = StepEnsemble
+		model = StepCell
 		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete] + ['time', ])
 		list_serializer_class = TransposedListSerializer
-
 
 	def annotate_time(self, instance):
 		try:
@@ -162,20 +171,20 @@ class StepEnsembleSerializer(serializers.ModelSerializer):
 		except:
 			return None
 
-	def to_representation(self, instance):
-		base = super(StepEnsembleSerializer, self).to_representation(instance)
 
+class StepEnsembleSerializer(FilteredRepresentationMixin, serializers.ModelSerializer):
+	time = serializers.SerializerMethodField('annotate_time')
+
+	class Meta:
+		model = StepEnsemble
+		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete] + ['time', ])
+		list_serializer_class = TransposedListSerializer
+
+	def annotate_time(self, instance):
 		try:
-			request = self.context['request']
-			selected_fields = request.query_params['fields'].split(',')
-			newbase = OrderedDict()
-			if len(selected_fields) != 0:
-				for key in selected_fields:
-					newbase[key] = base[key]
-				base = newbase
+			return instance.mdstep.steptime
 		except:
-			pass
-		return base
+			return None
 
 
 class StepContributionsQMSerializer(serializers.ModelSerializer):

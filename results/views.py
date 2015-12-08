@@ -246,7 +246,7 @@ class StepCellViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
 	queryset = StepCell.objects.all()
 	serializer_class = StepCellSerializer
 	filter_backends = (filters.DjangoFilterBackend,)
-	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete])
+	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete] + ['mdstep__mdrun'])
 
 
 class StepEnsembleViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
