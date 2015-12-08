@@ -187,12 +187,19 @@ class StepEnsembleSerializer(FilteredRepresentationMixin, serializers.ModelSeria
 			return None
 
 
-class StepContributionsQMSerializer(serializers.ModelSerializer):
+class StepContributionsQMSerializer(FilteredRepresentationMixin, serializers.ModelSerializer):
+	time = serializers.SerializerMethodField('annotate_time')
+
 	class Meta:
 		model = StepContributionsQM
-		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
+		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete] + ['time', ])
+		list_serializer_class = TransposedListSerializer
 
-
+	def annotate_time(self, instance):
+		try:
+			return instance.mdstep.steptime
+		except:
+			return None
 
 class StepEnergySerializer(serializers.ModelSerializer):
 	class Meta:
@@ -200,7 +207,16 @@ class StepEnergySerializer(serializers.ModelSerializer):
 		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
 
 
-class StepMetaQMSerializer(serializers.ModelSerializer):
+class StepMetaQMSerializer(FilteredRepresentationMixin, serializers.ModelSerializer):
+	time = serializers.SerializerMethodField('annotate_time')
+
 	class Meta:
 		model = StepMetaQM
-		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete])
+		fields = tuple([_.name for _ in model._meta.get_fields() if _.concrete] + ['time', ])
+		list_serializer_class = TransposedListSerializer
+
+	def annotate_time(self, instance):
+		try:
+			return instance.mdstep.steptime
+		except:
+			return None

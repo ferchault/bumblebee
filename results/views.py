@@ -260,7 +260,7 @@ class StepContributionsQMViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelView
 	queryset = StepContributionsQM.objects.all()
 	serializer_class = StepContributionsQMSerializer
 	filter_backends = (filters.DjangoFilterBackend,)
-	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete])
+	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete] + ['mdstep__mdrun'])
 
 
 class StepEnergyViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
@@ -274,4 +274,4 @@ class StepMetaQMViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
 	queryset = StepMetaQM.objects.all()
 	serializer_class = StepMetaQMSerializer
 	filter_backends = (filters.DjangoFilterBackend,)
-	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete])
+	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete] + ['mdstep__mdrun'])
