@@ -3,6 +3,7 @@ from django.db import models
 from django.forms import ModelForm
 from django.utils import timezone
 from bumblebee.models import ExplainableMixin
+from results import common
 
 
 class System(models.Model, ExplainableMixin):
@@ -20,6 +21,14 @@ class System(models.Model, ExplainableMixin):
 
 	def __str__(self):
 		return self.name
+
+	@property
+	def atomic_mass(self):
+		try:
+			atoms = self.atom_set.all()
+		except Atom.DoesNotExist:
+			return None
+		return common.estimate_mass(atoms)
 
 
 class SystemForm(ModelForm):

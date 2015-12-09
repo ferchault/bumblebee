@@ -94,7 +94,7 @@ class LimitUnfilteredQueriesMixin(viewsets.ModelViewSet):
 class SystemListing(ModelNameMixin, ListView):
 	model = System
 	template_name = 'listview-generic.html'
-	fields = ('name', 'bucket_count')
+	fields = ('name', 'bucket_count', 'atomic_mass')
 	queryset = System.objects.annotate(bucket_count=Count('bucket'))
 
 
