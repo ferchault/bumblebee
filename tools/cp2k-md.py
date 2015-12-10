@@ -179,6 +179,7 @@ class CP2KParser(object):
 
 	def find_next_frame(self):
 		""" Sets the next complete frame for analysis.
+
 		:return: Boolean. True if a frame could be loaded.
 		"""
 		first = False
@@ -310,6 +311,12 @@ class CP2KParser(object):
 			('multiplicity', 'FORCE_EVAL / DFT / MULTIPLICITY')
 		))[kind]
 		return self.get_path(path)
+
+	def skip_coordinates(self):
+		return 'coordinates' in self._skip
+
+	def skip_charges(self):
+		return 'charges' in self._skip
 
 	def get_path(self, path):
 		""" Reads a path from a CP2K input file.
@@ -508,26 +515,28 @@ if __name__ == '__main__':
 		server_stepmetaqm = bb.create('stepmetaqm', mdstep=server_mdstep['id'], **dict(zip(keys, data)))
 
 		# load coordinates
-		pos = cp.get_coordinates(output_frame)
-		if pos is not None:
-			assert(len(pos) == len(server_atoms))
-			objects_cache = list()
-			for atom_number, data in enumerate(zip(pos, server_atoms)):
-				coord, server_atom = data
-				x, y, z = map(float, coord)
-				obj = {'x': x, 'y': y, 'z': z, 'atom': server_atom['id'], 'mdstep': server_mdstep['id']}
-				objects_cache.append(obj)
-			bb.create_bulk('coordinate', objects_cache)
+		if not cp.skip_coordinates():
+			pos = cp.get_coordinates(output_frame)
+			if pos is not None:
+				assert(len(pos) == len(server_atoms))
+				objects_cache = list()
+				for atom_number, data in enumerate(zip(pos, server_atoms)):
+					coord, server_atom = data
+					x, y, z = map(float, coord)
+					obj = {'x': x, 'y': y, 'z': z, 'atom': server_atom['id'], 'mdstep': server_mdstep['id']}
+					objects_cache.append(obj)
+				bb.create_bulk('coordinate', objects_cache)
 
 		# load Mulliken charges
-		charges = cp.get_frame_mulliken_charges()
-		if charges is not None:
-			objects_cache = list()
-			for charge, server_atom in zip(charges, server_atoms):
-				charge['atom'] = server_atom['id']
-				charge['mdstep'] = server_mdstep['id']
-				objects_cache.append(charge)
-			bb.create_bulk('mullikencharge', objects_cache)
+		if not cp.skip_charges():
+			charges = cp.get_frame_mulliken_charges()
+			if charges is not None:
+				objects_cache = list()
+				for charge, server_atom in zip(charges, server_atoms):
+					charge['atom'] = server_atom['id']
+					charge['mdstep'] = server_mdstep['id']
+					objects_cache.append(charge)
+				bb.create_bulk('mullikencharge', objects_cache)
 
 		# counter
 		output_frame += 1
