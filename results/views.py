@@ -88,7 +88,9 @@ class LimitUnfilteredQueriesMixin(viewsets.ModelViewSet):
 			return self.queryset
 
 	def get_serializer_context(self):
-		return {'request': self.request}
+		context = super(LimitUnfilteredQueriesMixin, self).get_serializer_context()
+		context['request'] = self.request
+		return context
 
 
 class SystemListing(ModelNameMixin, ListView):
