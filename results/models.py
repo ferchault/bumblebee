@@ -124,9 +124,14 @@ class MDRun(models.Model, ExplainableMixin):
 		try:
 			last_mdrun = MDRun.objects.filter(series=self.series, part__lt=self.part).order_by('-part')[:1]
 		except:
+			# no neighboring run
 			return 0
 		try:
-			return last_mdrun[0].stop_time() - self.start_time()
+			delta = last_mdrun[0].stop_time() - self.start_time()
+			if delta < 0:
+				# ideal restarts would have no gap instead of a gap of a single timestep
+				delta += self.mdrunsettings_set.all()[0].timestep
+			return delta
 		except:
 			# at least on the runs is empty
 			return None
@@ -141,7 +146,11 @@ class MDRun(models.Model, ExplainableMixin):
 		except:
 			return 0
 		try:
-			return self.stop_time() - next_mdrun[0].start_time()
+			delta = self.stop_time() - next_mdrun[0].start_time()
+			if delta < 0:
+				# ideal restarts would have no gap instead of a gap of a single timestep
+				delta += self.mdrunsettings_set.all()[0].timestep
+			return delta
 		except:
 			# at least on the runs is empty
 			return None

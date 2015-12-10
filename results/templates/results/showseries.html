@@ -320,11 +320,11 @@
                 {% if runs|length > 0 %}
                     <table class="table table-hover">
                         <tr>
-                            <th>ID</th><th>Time</th><th>Duration</th><th>Overlap</th><th>Actions</th>
+                            <th>Part</th><th>Time</th><th>Duration</th><th>Overlap</th><th>Actions</th>
                         </tr>
                         {% for run in runs %}
                             <tr>
-                                <td>{{ run.id }}</td><td>
+                                <td>{{ run.part }}</td><td>
                                 {% if run.start_time != None %}
                                     {{ run.start_time }} fs - {{ run.stop_time }} fs
                                 {% else %}
