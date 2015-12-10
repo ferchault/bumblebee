@@ -337,7 +337,19 @@
                                 {% if run.duration == 0 %}
                                     <span class="label label-warning">Single Point</span>
                                 {% endif %}
-                            </td><td>{{ run.overlap_before }} fs / {{ run.overlap_after }}</td>
+                            </td><td>
+                                {% if run.overlap_before == 0 or run.overlap_before == None %}
+                                    -
+                                {% else %}
+                                     {{ run.overlap_before }} fs
+                                {% endif %}
+                                /
+                                {% if run.overlap_after == 0 or run.overlap_after == None %}
+                                    -
+                                {% else %}
+                                     {{ run.overlap_after }} fs
+                                {% endif %}
+                                </td>
                             <td>
                                 <a class="btn btn-danger btn-xs" href="{% url 'results-mdrun-delete' run.id %}">Delete</a>
                             </td>

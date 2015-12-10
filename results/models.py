@@ -117,10 +117,34 @@ class MDRun(models.Model, ExplainableMixin):
 			return None
 
 	def overlap_before(self):
-		return 0
+		""" Searches for any restart related overlap with the run before.
+
+		:return: Overlap found in femtoseconds. Negative overlap means a gap in the time series. None if any of the runs is empty.
+		"""
+		try:
+			last_mdrun = MDRun.objects.filter(series=self.series, part__lt=self.part).order_by('-part')[:1]
+		except:
+			return 0
+		try:
+			return last_mdrun[0].stop_time() - self.start_time()
+		except:
+			# at least on the runs is empty
+			return None
 
 	def overlap_after(self):
-		return 0
+		""" Searches for any restart related overlap with the run after.
+
+		:return: Overlap found in femtoseconds. Negative overlap means a gap in the time series. None if any of the runs in empty.
+		"""
+		try:
+			next_mdrun = MDRun.objects.filter(series=self.series, part__gt=self.part).order_by('part')[:1]
+		except:
+			return 0
+		try:
+			return self.stop_time() - next_mdrun[0].start_time()
+		except:
+			# at least on the runs is empty
+			return None
 
 	def detailed(self):
 		return '%s.%s.%s.%d' % (self.series.bucket.system, self.series.bucket, self.series, self.part)

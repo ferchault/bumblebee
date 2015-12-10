@@ -256,7 +256,7 @@ class CP2KParser(object):
 			converter = lambda _: _
 		if self._framedata is None:
 			return None
-		for idx in range(len(self._framedata))[::-1][:20]:
+		for idx in range(len(self._framedata))[::-1]:
 			if keyword in self._framedata[idx]:
 				parts = self._framedata[idx].split()
 				parts = [converter(_) for _ in map(keep_float, parts) if _ is not None]
@@ -477,8 +477,8 @@ if __name__ == '__main__':
 		server_atoms = bb.get_if_exists('atom', multiple=True, system=server_system['id'], ordering='number')
 
 	# import frames
-	cp.skip_header()
 	output_frame = 0
+	cp.skip_header()
 	while cp.find_next_frame():
 		print '\rProgress: %5.2f%%' % cp.progress(),
 
