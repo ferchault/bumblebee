@@ -107,6 +107,12 @@ class SystemCreate(ModelNameMixin, CreateView):
 	template_name = 'createview-generic.html'
 
 
+class SystemDelete(ModelNameMixin, DeleteView):
+	model = System
+	template_name = 'deleteview-generic.html'
+	success_url = reverse_lazy('results-system-list')
+
+
 class SystemViewSet(viewsets.ModelViewSet):
 	queryset = System.objects.all().order_by('name')
 	serializer_class = SystemSerializer
