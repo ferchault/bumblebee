@@ -324,7 +324,7 @@
                         </tr>
                         {% for run in runs %}
                             <tr>
-                                <td>{{ run.part }}</td><td>
+                                <td>{{ run.part }}<small>, ID {{ run.id }}</small></td><td>
                                 {% if run.start_time != None %}
                                     {{ run.start_time }} fs - {{ run.stop_time }} fs
                                 {% else %}
@@ -352,6 +352,8 @@
                                 </td>
                             <td>
                                 <a class="btn btn-danger btn-xs" href="{% url 'results-mdrun-delete' run.id %}">Delete</a>
+                                <a class="btn btn-info btn-xs" href="{% url 'results-mdrun-hide-start' run.id %}">Mask start</a>
+                                <a class="btn btn-info btn-xs" href="{% url 'results-mdrun-unhide' run.id %}">Unmask</a>
                             </td>
                             </tr>
                         {% endfor %}

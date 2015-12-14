@@ -1,5 +1,5 @@
 # django imports
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse, Http404
 from django.template import RequestContext, loader
 from django.views.generic import ListView, CreateView, DeleteView
@@ -179,6 +179,35 @@ class MDRunDelete(ModelNameMixin, DeleteView):
 		systemid = self.object.series.bucket.system_id
 		return reverse('results-series-show', args=[systemid, bucketid, seriesid])
 
+
+def MDRunHideStart(request, pk):
+	try:
+		this_run = MDRun.objects.get(pk=pk)
+	except:
+		raise Http404('System does not exist.')
+
+	try:
+		last_run = MDRun.objects.filter(series=this_run.series, part__lte=this_run.part).order_by('-part')[:1][0]
+	except:
+		# this is the first run
+		return redirect('results-series-show', system=this_run.series.bucket.system_id, bucket=this_run.series.bucket_id, series=this_run.series_id)
+
+	stop_time = last_run.stop_time()
+	if stop_time is None:
+		# last run was empty, no overlap
+		return redirect('results-series-show', system=this_run.series.bucket.system_id, bucket=this_run.series.bucket_id, series=this_run.series_id)
+	this_run.mdstep_set.filter(steptime__lte=stop_time).update(masked=True)
+	return redirect('results-series-show', system=this_run.series.bucket.system_id, bucket=this_run.series.bucket_id, series=this_run.series_id)
+
+
+def MDRunUnhide(request, pk):
+	try:
+		this_run = MDRun.objects.get(pk=pk)
+	except:
+		raise Http404('System does not exist.')
+
+	this_run.mdstep_set.all().update(masked=False)
+	return redirect('results-series-show', system=this_run.series.bucket.system_id, bucket=this_run.series.bucket_id, series=this_run.series_id)
 
 class MDStepViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
 	queryset = MDStep.objects.all()

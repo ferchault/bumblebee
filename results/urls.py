@@ -41,5 +41,7 @@ urlpatterns = patterns('',
 	url(r'^system/show/(?P<system>\d+)/(?P<bucket>\d+)/(?P<series>\d+)/$', views.show_series, name='results-series-show'),
 	url(r'^system/delete/(?P<pk>\d+)/$', views.SystemDelete.as_view(), name='results-system-delete'),
 	url(r'^mdrun/delete/(?P<pk>\d+)/$', views.MDRunDelete.as_view(), name='results-mdrun-delete'),
+	url(r'^mdrun/hidestart/(?P<pk>\d+)/$', views.MDRunHideStart, name='results-mdrun-hide-start'),
+	url(r'^mdrun/unhide/(?P<pk>\d+)/$', views.MDRunUnhide, name='results-mdrun-unhide'),
 	url(r'^api/', include(router.urls)),
 )
