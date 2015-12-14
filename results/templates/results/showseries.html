@@ -89,13 +89,23 @@
         $(function(){
             $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
                 var target = $(e.target).attr("href")
+                $(target).parents('.nav-tabs-custom').children('.tab-content').show()
                 if ($(target).find('.progress') != undefined) {
                     updateGraph(target)
                 }
             })
-            $.each($('.nav-tabs > li.active > a[data-toggle="tab"]'), function(i, e){
-                updateGraph($(e).attr("href"))
+            $('a[data-toggle="tab"]').bind('click', function (e) {
+                if ($(e.target).parent('.active')[0] != undefined) {
+                    var target = $(e.target).attr("href")
+                    base = $(target).parents('.nav-tabs-custom').children('.tab-content')
+                    if (base.is(':visible')) {
+                        base.hide()
+                    } else {
+                        base.show()
+                    }
+                }
             })
+            $('.tab-content').hide()
 
         })
     </script>
@@ -104,7 +114,7 @@
         <div class="col-md-6">
             <div class="nav-tabs-custom">
             <ul class="nav nav-tabs pull-right">
-              <li class="active"><a href="#tab_1-1" data-toggle="tab">Temperature</a></li>
+              <li><a href="#tab_1-1" data-toggle="tab">Temperature</a></li>
               <li><a href="#tab_2-2" data-toggle="tab">Pressure</a></li>
                 <li><a href="#tab_3-3" data-toggle="tab">Volume</a></li>
                 <li><a href="#tab_4-4" data-toggle="tab">Conserved Q</a></li>
@@ -166,12 +176,12 @@
         <div class="col-md-6">
             <div class="nav-tabs-custom">
             <ul class="nav nav-tabs pull-right">
-              <li class="active"><a href="#tab_10-10" data-toggle="tab">Vector a</a></li>
-              <li><a href="#tab_11-11" data-toggle="tab">Vector b</a></li>
-                <li><a href="#tab_12-12" data-toggle="tab">Vector c</a></li>
-                <li><a href="#tab_13-13" data-toggle="tab">Angle alpha</a></li>
-                <li><a href="#tab_14-14" data-toggle="tab">Angle beta</a></li>
-                <li><a href="#tab_15-15" data-toggle="tab">Angle gamma</a></li>
+              <li><a href="#tab_10-10" data-toggle="tab">a</a></li>
+              <li><a href="#tab_11-11" data-toggle="tab">b</a></li>
+                <li><a href="#tab_12-12" data-toggle="tab">c</a></li>
+                <li><a href="#tab_13-13" data-toggle="tab">Alpha</a></li>
+                <li><a href="#tab_14-14" data-toggle="tab">Beta</a></li>
+                <li><a href="#tab_15-15" data-toggle="tab">Gamma</a></li>
               <li class="pull-left header"><i class="fa fa-th"></i>Simulation Box</li>
             </ul>
             <div class="tab-content">
@@ -238,7 +248,7 @@
         <div class="col-md-6">
             <div class="nav-tabs-custom">
             <ul class="nav nav-tabs pull-right">
-                <li class="active"><a href="#tab_30-30" data-toggle="tab">Core Self</a></li>
+                <li><a href="#tab_30-30" data-toggle="tab">Core Self</a></li>
                 <li><a href="#tab_31-31" data-toggle="tab">Core H</a></li>
                 <li><a href="#tab_32-32" data-toggle="tab">Hartree</a></li>
                 <li><a href="#tab_33-33" data-toggle="tab">XC</a></li>
