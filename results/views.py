@@ -180,6 +180,26 @@ class MDRunDelete(ModelNameMixin, DeleteView):
 		return reverse('results-series-show', args=[systemid, bucketid, seriesid])
 
 
+def MDRunHideStop(request, pk):
+	try:
+		this_run = MDRun.objects.get(pk=pk)
+	except:
+		raise Http404('System does not exist.')
+
+	try:
+		next_run = MDRun.objects.filter(series=this_run.series, part__gt=this_run.part).order_by('part')[:1][0]
+	except:
+		# this is the last run
+		return redirect('results-series-show', system=this_run.series.bucket.system_id, bucket=this_run.series.bucket_id, series=this_run.series_id)
+
+	start_time = next_run.start_time()
+	if start_time is None:
+		# last run was empty, no overlap
+		return redirect('results-series-show', system=this_run.series.bucket.system_id, bucket=this_run.series.bucket_id, series=this_run.series_id)
+	this_run.mdstep_set.filter(steptime__gte=start_time).update(masked=True)
+	return redirect('results-series-show', system=this_run.series.bucket.system_id, bucket=this_run.series.bucket_id, series=this_run.series_id)
+
+
 def MDRunHideStart(request, pk):
 	try:
 		this_run = MDRun.objects.get(pk=pk)
@@ -187,7 +207,7 @@ def MDRunHideStart(request, pk):
 		raise Http404('System does not exist.')
 
 	try:
-		last_run = MDRun.objects.filter(series=this_run.series, part__lte=this_run.part).order_by('-part')[:1][0]
+		last_run = MDRun.objects.filter(series=this_run.series, part__lt=this_run.part).order_by('-part')[:1][0]
 	except:
 		# this is the first run
 		return redirect('results-series-show', system=this_run.series.bucket.system_id, bucket=this_run.series.bucket_id, series=this_run.series_id)
@@ -283,21 +303,21 @@ class StepCellViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
 	queryset = StepCell.objects.all()
 	serializer_class = StepCellSerializer
 	filter_backends = (filters.DjangoFilterBackend,)
-	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete] + ['mdstep__mdrun'])
+	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete] + ['mdstep__mdrun', 'mdstep__masked'])
 
 
 class StepEnsembleViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
 	queryset = StepEnsemble.objects.all()
 	serializer_class = StepEnsembleSerializer
 	filter_backends = (filters.DjangoFilterBackend,)
-	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete] + ['mdstep__mdrun'])
+	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete] + ['mdstep__mdrun', 'mdstep__masked'])
 
 
 class StepContributionsQMViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
 	queryset = StepContributionsQM.objects.all()
 	serializer_class = StepContributionsQMSerializer
 	filter_backends = (filters.DjangoFilterBackend,)
-	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete] + ['mdstep__mdrun'])
+	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete] + ['mdstep__mdrun', 'mdstep__masked'])
 
 
 class StepEnergyViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
@@ -311,4 +331,4 @@ class StepMetaQMViewSet(LimitUnfilteredQueriesMixin, viewsets.ModelViewSet):
 	queryset = StepMetaQM.objects.all()
 	serializer_class = StepMetaQMSerializer
 	filter_backends = (filters.DjangoFilterBackend,)
-	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete] + ['mdstep__mdrun'])
+	filter_fields = tuple([_.name for _ in serializer_class.Meta.model._meta.get_fields() if _.concrete] + ['mdstep__mdrun', 'mdstep__masked'])

@@ -71,7 +71,7 @@
             datapoints = 0
             for (i = 0; i < mdruns.length; i++) {
                 $.when($.ajax({
-                    url: '/results/api/' + $(target).attr('data-endpoint') + '/?fields=' + $(target).attr('data-fields') + '&mdstep__mdrun=' + mdruns[i] + '&transpose',
+                    url: '/results/api/' + $(target).attr('data-endpoint') + '/?fields=' + $(target).attr('data-fields') + '&mdstep__mdrun=' + mdruns[i] + '&mdstep__masked=False&transpose',
                     async: true,
                     index: i,
                     target: target,
@@ -326,7 +326,7 @@
                         <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i></button>
                     </div>
                 </div>
-                <div class="box-body table-responsive">
+                <div class="box-body table-responsive" style="overflow: visible">
                 {% if runs|length > 0 %}
                     <table class="table table-hover">
                         <tr>
@@ -361,9 +361,20 @@
                                 {% endif %}
                                 </td>
                             <td>
-                                <a class="btn btn-danger btn-xs" href="{% url 'results-mdrun-delete' run.id %}">Delete</a>
-                                <a class="btn btn-info btn-xs" href="{% url 'results-mdrun-hide-start' run.id %}">Mask start</a>
-                                <a class="btn btn-info btn-xs" href="{% url 'results-mdrun-unhide' run.id %}">Unmask</a>
+                                <div class="btn-group" role="group">
+                                    <a class="btn btn-danger btn-xs" href="{% url 'results-mdrun-delete' run.id %}">Delete</a>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            Masking <span class="caret"></span>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a href="{% url 'results-mdrun-hide-start' run.id %}">Mask start</a></li>
+                                            <li><a href="{% url 'results-mdrun-hide-stop' run.id %}">Mask stop</a></li>
+                                            <li role="separator" class="divider"></li>
+                                            <li><a href="{% url 'results-mdrun-unhide' run.id %}">Unmask</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
                             </td>
                             </tr>
                         {% endfor %}
